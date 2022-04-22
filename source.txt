@@ -1,0 +1,1 @@
+int$v,$c;$v=41;$c=15;$c=$v+4*6+($v*3)*$c+940*($v*6);if($v*89<$v)then$v=$c*479;elsebegin$c=$c+85;$c=$c+734;end;while($c*6>$v)do$v=$v+9;
