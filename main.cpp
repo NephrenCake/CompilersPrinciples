@@ -12,8 +12,6 @@ using namespace std;
  * <语句部分> → <语句部分><语句>;|<语句>;
  * <语句> → <赋值语句>|<条件语句>|<循环语句>|
  * <赋值语句> → <标识符>=<表达式>
- * <条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>
- * <循环语句> → while （<条件>） do <嵌套语句>
  * <表达式> → <项>|<表达式><加法运算符><项>
  * <项> → <因子>|<项><乘法运算符><因子>
  * <因子> → <标识符>|<常量>|(<表达式>)
@@ -25,38 +23,31 @@ using namespace std;
  * <关系运算符> → <|>|!= |>=|<= |==
  * <条件> → <表达式><关系运算符><表达式>
  * <复合语句> → begin <语句部分> end
+ * <条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>
+ * <循环语句> → while （<条件>） do <嵌套语句>
  * <嵌套语句> → <语句>|<复合语句>
  * <字母> → a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z
  * <数字> → 0|1|2|3|4|5|6|7|8|9
  */
 
-/**
- * 类型       符号
- * 标识符      $字母+数字
- * 分号       ;
- * 逗号       ,
- * 赋值号      =
- * 关系运算符    ==
- * 加号       +
- * 关系运算符    <
- * 关系运算符    >
- * 左括号      (
- * 右括号      )
- * int        int
- * if         if
- * then       then
- * else       else
- * begin      begin
- * end        end
- */
+#define WORD 1
+#define NUM 2
+#define SYMBOL 3
+#define IDENTIFIER 4
 
-struct Identifier {
-    string name;
-    string type;
-    string value;
-};
+// 标识符      $字母+数字
+const unordered_set<string> reserved_words = {"begin", "end", "int", "if", "else", "then", "while", "do"};
+const unordered_set<string> reserved_symbols = {"+", "*", "<", ">", "!=", ">=", "<=", "==", ",", ";", "(", ")", "="};
+const unordered_set<char> legal_symbols = {'+', '*', '<', '>', '!', ',', ';', '(', ')', '='};
+const unordered_set<char> ignore_symbols = {' ', '\n', '\t'};
 
 class IdentifierTable {
+    struct Identifier {
+        string name;
+        string type;
+        string value;
+    };
+
     unordered_map<string, Identifier> table;
 
     bool existIdentifier(string &name) {
@@ -87,178 +78,122 @@ public:
 
 class LexicalAnalyzer {
 private:
+    IdentifierTable identifierTable;
     int ptr{}, state{};
     string temp, source;
 
+    inline bool is_letter(char ch) {
+        return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
+    }
+
+    inline bool is_digit(char ch) {
+        return ch >= '0' && ch <= '9';
+    }
+
+    inline bool is_legal_symbol(char ch) {
+        return legal_symbols.count(ch) != 0;
+    }
+
+    inline int start_type(char ch) {  // 指出由词首字符推理得出的当前词的可能类型
+        if (is_letter(ch)) return WORD;
+        if (is_digit(ch)) return NUM;
+        if (is_legal_symbol(ch)) return SYMBOL;
+        if (ch == '$') return IDENTIFIER;
+        return -1;
+    }
+
+    inline bool ptr_arrive_end(int p) {
+        return p == source.size() || source[p] == '#';
+    }
+
+    inline bool is_reserved_words(string str) {
+        return reserved_words.count(str) != 0;
+    }
+
 public:
-    IdentifierTable identifierTable;
-
     explicit LexicalAnalyzer(string &source) {
-        this->source = source + "#";
+        this->source = source;
     }
 
-    void resetCur() {
-        ptr = 0, state = 1, temp = "";
-    }
-
-    void startAnalyze() {
+    void analyzeIdentifier() {
         identifierTable.clearTable();
-        resetCur();
-        for (auto &ch: source) {
-            if (ch == '#') break;
-            if (ch == ' ') continue;
-            divert(ch);
-        }
+        string res;
+        while (!ptr_arrive_end(ptr))
+            getNextWord(res);
     }
 
-    bool divert(char ch) {
-        if (state == 1 && ch == '$')  // 1->2
-            state = 2, temp += ch;
-        else if (state == 2 || state == 3)  // 2->3 3->3 3->1
-            if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9')
-                state = 3, temp += ch;
-            else {
-                identifierTable.addIdentifier(temp);
-                cout << "(标识符, " << temp << "," << endl;
-                resetCur();
-                divert(ch);
-            }
-        else if (state == 1 && ch == ';') {  // 1->4
-            identifierTable.addIdentifier(";");
-            cout << "(分号, ;)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == ',') {  // 1->5
-            identifierTable.addIdentifier(",");
-            cout << "(逗号, ,)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '=') {  // 1->6
-            state = 6, temp += ch;
-        } else if (state == 6) {  // 6->7 6->1
-            if (ch == '=') {
-                identifierTable.addIdentifier("==");
-                cout << "(关系运算符==, ,)" << endl;
-                resetCur();
-            } else {
-                identifierTable.addIdentifier("=");
-                cout << "(赋值号=, =)" << endl;
-                resetCur();
-                divert(ch);
-            }
-        } else if (state == 1 && ch == '<') {  // 1->8
-            identifierTable.addIdentifier("<");
-            cout << "(关系运算符<, <)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '>') {  // 1->9
-            identifierTable.addIdentifier(">");
-            cout << "(关系运算符>, >)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '(') {  // 1->10
-            identifierTable.addIdentifier("(");
-            cout << "(左括号, ()" << endl;
-            resetCur();
-        } else if (state == 1 && ch == ')') {  // 1->11
-            identifierTable.addIdentifier(")");
-            cout << "(右括号, ))" << endl;
-            resetCur();
-        } else if (state == 1 && ch == 'i') {  // 1->12
-            state = 12, temp += ch;
-        } else if (state == 12 && ch == 'n') {  // 12->13
-            state = 13, temp += ch;
-        } else if (state == 13 && ch == 't') {  // 12->14
-            identifierTable.addIdentifier("int");
-            cout << "(关键字int, int)" << endl;
-            resetCur();
-        } else if (state == 12 && ch == 'f') {  // 12->15
-            identifierTable.addIdentifier("if");
-            cout << "(关键字if, if)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == 't') {  // 1->16
-            state = 16, temp += ch;
-        } else if (state == 16 && ch == 'h') {  // 16->17
-            state = 17, temp += ch;
-        } else if (state == 17 && ch == 'e') {  // 17->18
-            state = 18, temp += ch;
-        } else if (state == 18 && ch == 'n') {  // 18->19
-            identifierTable.addIdentifier("then");
-            cout << "(关键字then, then)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == 'e') {  // 1->20
-            state = 20, temp += ch;
-        } else if (state == 20 && ch == 'l') {  // 20->21
-            state = 21, temp += ch;
-        } else if (state == 21 && ch == 's') {  // 21->22
-            state = 22, temp += ch;
-        } else if (state == 22 && ch == 'e') {  // 22->23
-            identifierTable.addIdentifier("else");
-            cout << "(关键字else, else)" << endl;
-            resetCur();
-        } else if (state == 20 && ch == 'n') {  // 20->24
-            state = 24, temp += ch;
-        } else if (state == 24 && ch == 'd') {  // 24->25
-            identifierTable.addIdentifier("end");
-            cout << "(关键字end, end)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == 'b') {  // 1->26
-            state = 26, temp += ch;
-        } else if (state == 26 && ch == 'e') {  // 26->27
-            state = 27, temp += ch;
-        } else if (state == 27 && ch == 'g') {  // 27->28
-            state = 28, temp += ch;
-        } else if (state == 28 && ch == 'i') {  // 28->29
-            state = 29, temp += ch;
-        } else if (state == 29 && ch == 'n') {  // 29->30
-            identifierTable.addIdentifier("begin");
-            cout << "(关键字begin, begin)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '+') {  // todo 1->31
-            identifierTable.addIdentifier("+");
-            cout << "(运算符+, +)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '-') {  // todo 1->32
-            identifierTable.addIdentifier("-");
-            cout << "(运算符-, -)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '*') {  // todo 1->33
-            identifierTable.addIdentifier("*");
-            cout << "(运算符*, *)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == '/') {  // todo 1->34
-            identifierTable.addIdentifier("/");
-            cout << "(运算符/, /)" << endl;
-            resetCur();
-        } else if (state == 1 && (ch >= '0' && ch <= '9')) {  // todo 1->35
-            state = 35, temp += ch;
-        } else if (state == 35) {  // todo 35->35 35->1
-            if (ch >= '0' && ch <= '9')
-                temp += ch;
-            else {
-                identifierTable.addIdentifier(temp);
-                cout << "(常数, " << temp << ")" << endl;
-                resetCur();
-                divert(ch);
-            }
-        } else if (state == 1 && ch == 'd') {  // todo 1->36
-            state = 36, temp += ch;
-        } else if (state == 36 && ch == 'o') {  // todo 36->37
-            identifierTable.addIdentifier("do");
-            cout << "(关键字do, do)" << endl;
-            resetCur();
-        } else if (state == 1 && ch == 'w') {  // todo 1->36
-            state = 36, temp += ch;
-        } else if (state == 36 && ch == 'h') {  // todo 36->37
-            state = 37, temp += ch;
-        } else if (state == 37 && ch == 'i') {  // todo 37->38
-            state = 38, temp += ch;
-        } else if (state == 38 && ch == 'l') {  // todo 38->39
-            state = 39, temp += ch;
-        } else if (state == 39 && ch == 'e') {  // todo 39->40
-            identifierTable.addIdentifier("while");
-            cout << "(关键字while, while)" << endl;
-            resetCur();
-        } else {
-            cout << "unknown " << ch << endl;
-            resetCur();
+    bool getNextWord(string &res) {
+        while (!ptr_arrive_end(ptr) && ignore_symbols.count(source[ptr]) != 0)
+            ptr++;  // 忽略可忽略字符，并且指针没到文末
+        if (ptr_arrive_end(ptr)) {
+            cout << "Warning: no words any more!" << endl;
+            return false;
         }
+
+        // 获取下一个词
+        res = "";
+        int len = 0;
+        string sub_word;
+        switch (start_type(source[ptr])) {
+            case WORD:
+                do {
+                    len++;
+                    sub_word = source.substr(ptr, len);
+                } while (!is_reserved_words(sub_word) &&  // 如果还不是关键字，则需要继续拼下一个字符
+                         !ptr_arrive_end(ptr + len) &&  // 防越界
+                         is_letter(source[ptr + len]));  // 字符合法
+
+                if (!is_reserved_words(sub_word)) {
+                    cout << "[Error]: Word at " << ptr << ", " << sub_word << " is not a reserved word!" << endl;
+                    ptr += len;
+                    return false;
+                }
+                // todo 非期望类型
+                // if (sub_word != next_word.type)
+                //     cout << "[Error]: Word at" << ptr << ", " << sub_word << " unexpected type!" << endl;
+                cout << "(关键字, " << sub_word << ")" << endl;
+                res = sub_word;
+                break;
+            case NUM:
+                do {
+                    len++;
+                    sub_word = source.substr(ptr, len);
+                } while (!ptr_arrive_end(ptr + len) &&  // 防越界
+                         is_digit(source[ptr + len]));  // 字符合法，可以拼成更长的数字序列
+                cout << "(常数, " << sub_word << ")" << endl;
+                res = sub_word;
+                break;
+            case SYMBOL:
+                do {
+                    len++;
+                    sub_word = source.substr(ptr, len);
+                } while (!ptr_arrive_end(ptr + len) &&  // 防越界
+                         source[ptr + len] == '=');  // 字符合法，考虑 "!=", ">=", "<=", "=="
+                cout << "(符号, " << sub_word << ")" << endl;
+                res = sub_word;
+                break;
+            case IDENTIFIER:
+                do {
+                    len++;
+                    sub_word = source.substr(ptr, len);
+                } while (!ptr_arrive_end(ptr + len) &&  // 防越界
+                         (is_letter(source[ptr + len]) ||
+                          is_digit(source[ptr + len])));  // 变量名由$开头，并由字母或数字组成
+                cout << "(标识符, " << sub_word << ")" << endl;
+                identifierTable.addIdentifier(sub_word);
+                res = sub_word;
+                break;
+            default:  // illegal
+                cout << "[Error]: Word at" << ptr << ", " << source[ptr] << " is not legal!" << endl;
+                ptr++;
+                return false;
+        }
+        ptr += len;
+        return true;
+    }
+
+    inline string dumpIdentifierTable() {
+        return identifierTable.dumpTable();
     }
 };
 
@@ -279,12 +214,19 @@ string readFile(const string &filePath) {
 }
 
 int main() {
-    string source = readFile("source.txt");
-    cout << "==========Source Code==========\n" << source << endl << "==========Source Code==========" << endl;
+    string source = readFile("source.txt") + "#";
+    if (!source.empty()) {
+        cout << "==========Source Code==========" << endl;
+        cout << source << endl;
+        cout << "==========Source Code==========" << endl;
+    } else {
+        cout << "Read Nothing!" << endl;
+        return -1;
+    }
 
     LexicalAnalyzer lexicalAnalyzer(source);
-    lexicalAnalyzer.startAnalyze();
-    cout << lexicalAnalyzer.identifierTable.dumpTable();
+    lexicalAnalyzer.analyzeIdentifier();
+    cout << lexicalAnalyzer.dumpIdentifierTable();
 
     cout << "按回车继续" << endl;
     system("read");
