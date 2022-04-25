@@ -79,22 +79,22 @@ public:
 class LexicalAnalyzer {
 private:
     IdentifierTable identifierTable;
-    int ptr{}, state{};
-    string temp, source;
+    int ptr{};
+    string source;
 
-    inline bool is_letter(char ch) {
+    static inline bool is_letter(char ch) {
         return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
     }
 
-    inline bool is_digit(char ch) {
+    static inline bool is_digit(char ch) {
         return ch >= '0' && ch <= '9';
     }
 
-    inline bool is_legal_symbol(char ch) {
+    static inline bool is_legal_symbol(char ch) {
         return legal_symbols.count(ch) != 0;
     }
 
-    inline int start_type(char ch) {  // 指出由词首字符推理得出的当前词的可能类型
+    static inline int start_type(char ch) {  // 指出由词首字符推理得出的当前词的可能类型
         if (is_letter(ch)) return WORD;
         if (is_digit(ch)) return NUM;
         if (is_legal_symbol(ch)) return SYMBOL;
@@ -106,7 +106,7 @@ private:
         return p == source.size() || source[p] == '#';
     }
 
-    inline bool is_reserved_words(string str) {
+    static inline bool is_reserved_words(const string& str) {
         return reserved_words.count(str) != 0;
     }
 
