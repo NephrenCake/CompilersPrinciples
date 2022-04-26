@@ -118,20 +118,26 @@ public:
     void analyzeIdentifier() {
         identifierTable.clearTable();
         string res;
+        int type;
         while (!ptr_arrive_end(ptr))
-            getNextWord(res);
+            getNextWord(res, type);
     }
 
-    bool getNextWord(string &res) {
+    /**
+     * 按顺序获取下一个词
+     * @param res 传入引用，用于传出下一个词
+     * @param type 传入引用，用于传出下一个词的类型
+     * @return 表示是否正确获取到下一个词
+     */
+    bool getNextWord(string &res, int &type) {
         while (!ptr_arrive_end(ptr) && ignore_symbols.count(source[ptr]) != 0)
             ptr++;  // 忽略可忽略字符，并且指针没到文末
         if (ptr_arrive_end(ptr)) {
-            cout << "Warning: no words any more!" << endl;
+            cout << "[Warning]: no words any more!" << endl;
             return false;
         }
 
-        // 获取下一个词
-        res = "";
+        // 枚举长度向后拼接，并输出二元式
         int len = 0;
         string sub_word;
         switch (start_type(source[ptr])) {
@@ -144,15 +150,11 @@ public:
                          is_letter(source[ptr + len]));  // 字符合法
 
                 if (!is_reserved_words(sub_word)) {
-                    cout << "[Error]: Word at " << ptr << ", " << sub_word << " is not a reserved word!" << endl;
+                    cout << "[Error]: Word at " << ptr << ", " << sub_word << " is not a reserved word! Will ignore it!" << endl;
                     ptr += len;
                     return false;
                 }
-                // todo 非期望类型
-                // if (sub_word != next_word.type)
-                //     cout << "[Error]: Word at" << ptr << ", " << sub_word << " unexpected type!" << endl;
                 cout << "(关键字, " << sub_word << ")" << endl;
-                res = sub_word;
                 break;
             case NUM:
                 do {
@@ -161,7 +163,6 @@ public:
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          is_digit(source[ptr + len]));  // 字符合法，可以拼成更长的数字序列
                 cout << "(常数, " << sub_word << ")" << endl;
-                res = sub_word;
                 break;
             case SYMBOL:
                 do {
@@ -170,7 +171,6 @@ public:
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          source[ptr + len] == '=');  // 字符合法，考虑 "!=", ">=", "<=", "=="
                 cout << "(符号, " << sub_word << ")" << endl;
-                res = sub_word;
                 break;
             case IDENTIFIER:
                 do {
@@ -181,13 +181,14 @@ public:
                           is_digit(source[ptr + len])));  // 变量名由$开头，并由字母或数字组成
                 cout << "(标识符, " << sub_word << ")" << endl;
                 identifierTable.addIdentifier(sub_word);
-                res = sub_word;
                 break;
             default:  // illegal
                 cout << "[Error]: Word at" << ptr << ", " << source[ptr] << " is not legal!" << endl;
                 ptr++;
                 return false;
         }
+        res = sub_word;
+        type = start_type(source[ptr]);
         ptr += len;
         return true;
     }
@@ -195,6 +196,10 @@ public:
     inline string dumpIdentifierTable() {
         return identifierTable.dumpTable();
     }
+};
+
+class SyntaxAnalyzer {
+
 };
 
 string readFile(const string &filePath) {
@@ -215,18 +220,23 @@ string readFile(const string &filePath) {
 
 int main() {
     string source = readFile("source.txt") + "#";
-    if (!source.empty()) {
-        cout << "==========Source Code==========" << endl;
-        cout << source << endl;
-        cout << "==========Source Code==========" << endl;
-    } else {
+    if (source.empty() || source == "#") {
         cout << "Read Nothing!" << endl;
         return -1;
     }
 
+    cout << "==========Source Code==========" << endl;
+    cout << source << endl;
+    cout << "==========Source Code==========" << endl;
+
+    cout << "==========LexicalAnalyze==========" << endl;
     LexicalAnalyzer lexicalAnalyzer(source);
     lexicalAnalyzer.analyzeIdentifier();
+    cout << "==========LexicalAnalyze==========" << endl;
+
+    cout << "==========IdentifierTable==========" << endl;
     cout << lexicalAnalyzer.dumpIdentifierTable();
+    cout << "==========IdentifierTable==========" << endl;
 
     cout << "按回车继续" << endl;
     system("read");
