@@ -50,10 +50,6 @@ class IdentifierTable {
 
     unordered_map<string, Identifier> table;
 
-    bool existIdentifier(string &name) {
-        return table.find(name) != table.end();
-    }
-
 public:
     bool addIdentifier(string name) {
         if (existIdentifier(name))
@@ -74,11 +70,14 @@ public:
                    "value: " + item.second.value + "\n";
         return res;
     }
+
+    bool existIdentifier(string &name) {
+        return table.find(name) != table.end();
+    }
 };
 
 class LexicalAnalyzer {
 private:
-    IdentifierTable identifierTable;
     int ptr{};
     string source;
 
@@ -106,7 +105,7 @@ private:
         return p == source.size() || source[p] == '#';
     }
 
-    static inline bool is_reserved_words(const string& str) {
+    static inline bool is_reserved_words(const string &str) {
         return reserved_words.count(str) != 0;
     }
 
@@ -115,12 +114,42 @@ public:
         this->source = source;
     }
 
-    void analyzeIdentifier() {
+    /**
+     * 重置内容指针
+     */
+    void resetCur() {
+        ptr = 0;
+    }
+
+    /**
+     * 解析代码中的标识符，并输出到标识符表
+     * @param identifierTable 标识符表
+     */
+    void analyzeIdentifier(IdentifierTable& identifierTable) {
         identifierTable.clearTable();
+        resetCur();
         string res;
         int type;
-        while (!ptr_arrive_end(ptr))
+        while (!ptr_arrive_end(ptr)) {
             getNextWord(res, type);
+            switch (type) {
+                case WORD:
+                    cout << "(关键字, " << res << ")" << endl;
+                    break;
+                case NUM:
+                    cout << "(常数, " << res << ")" << endl;
+                    break;
+                case SYMBOL:
+                    cout << "(符号, " << res << ")" << endl;
+                    break;
+                case IDENTIFIER:
+                    cout << "(标识符, " << res << ")" << endl;
+                    identifierTable.addIdentifier(res);
+                    break;
+                default: break;
+            }
+        }
+        resetCur();
     }
 
     /**
@@ -148,30 +177,30 @@ public:
                 } while (!is_reserved_words(sub_word) &&  // 如果还不是关键字，则需要继续拼下一个字符
                          !ptr_arrive_end(ptr + len) &&  // 防越界
                          is_letter(source[ptr + len]));  // 字符合法
-
                 if (!is_reserved_words(sub_word)) {
-                    cout << "[Error]: Word at " << ptr << ", " << sub_word << " is not a reserved word! Will ignore it!" << endl;
+                    cout << "[Lexical Error]: Word at " << ptr << ", " << sub_word <<
+                         " is not a reserved word! Will ignore it!" << endl;
                     ptr += len;
                     return false;
                 }
-                cout << "(关键字, " << sub_word << ")" << endl;
                 break;
+
             case NUM:
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          is_digit(source[ptr + len]));  // 字符合法，可以拼成更长的数字序列
-                cout << "(常数, " << sub_word << ")" << endl;
                 break;
+
             case SYMBOL:
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          source[ptr + len] == '=');  // 字符合法，考虑 "!=", ">=", "<=", "=="
-                cout << "(符号, " << sub_word << ")" << endl;
                 break;
+
             case IDENTIFIER:
                 do {
                     len++;
@@ -179,9 +208,8 @@ public:
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          (is_letter(source[ptr + len]) ||
                           is_digit(source[ptr + len])));  // 变量名由$开头，并由字母或数字组成
-                cout << "(标识符, " << sub_word << ")" << endl;
-                identifierTable.addIdentifier(sub_word);
                 break;
+
             default:  // illegal
                 cout << "[Error]: Word at" << ptr << ", " << source[ptr] << " is not legal!" << endl;
                 ptr++;
@@ -192,14 +220,50 @@ public:
         ptr += len;
         return true;
     }
-
-    inline string dumpIdentifierTable() {
-        return identifierTable.dumpTable();
-    }
 };
 
 class SyntaxAnalyzer {
+private:
+    bool have_error = false;
+    LexicalAnalyzer *lexicalAnalyzer;
 
+public:
+    explicit SyntaxAnalyzer(LexicalAnalyzer &lexicalAnalyzer) {
+
+    }
+
+    // void parse_PROGRAM() {
+    //     cout << "<程序> -> <变量说明部分>;<语句部分>" << endl;
+    //     parse_DATA();
+    //     parse_CODE();
+    // }
+
+private:
+    // void parse_DATA() {
+    //     match_word()
+    // }
+    //
+    // void parse_CODE() {
+    //
+    // }
+    //
+    // void match_word(int expected_type) {
+    //     if (lookahead_type != expected_type) {
+    //         cout << "Line " << cur_line << ": " << endl;
+    //         cout << "[Syntax error]: Expect ";
+    //         if (expected_type == 0 || expected_type == 24) {
+    //             cout << error_check[expected_type] << " \"" << next_word.value << "\"";
+    //         } else {
+    //             cout << "\"" << error_check[expected_type] << "\"";
+    //         }
+    //         cout << ", but get \"" << next_word.value << "\"." << endl;
+    //         // exit(0);
+    //         have_error = true;
+    //     }
+    //     take_word();
+    //     lookahead_type = next_word.type;
+    //
+    // }
 };
 
 string readFile(const string &filePath) {
@@ -221,22 +285,27 @@ string readFile(const string &filePath) {
 int main() {
     string source = readFile("source.txt") + "#";
     if (source.empty() || source == "#") {
-        cout << "Read Nothing!" << endl;
+        cout << "[Error]: Read Nothing!" << endl;
         return -1;
     }
 
-    cout << "==========Source Code==========" << endl;
+    cout << "========== Source Code ==========" << endl;
     cout << source << endl;
-    cout << "==========Source Code==========" << endl;
+    cout << "========== Source Code ==========" << endl << endl;
 
-    cout << "==========LexicalAnalyze==========" << endl;
+    cout << "========== Lexical Analyze ==========" << endl;
     LexicalAnalyzer lexicalAnalyzer(source);
-    lexicalAnalyzer.analyzeIdentifier();
-    cout << "==========LexicalAnalyze==========" << endl;
+    IdentifierTable identifierTable;
+    lexicalAnalyzer.analyzeIdentifier(identifierTable);
+    cout << "========== Lexical Analyze ==========" << endl << endl;
 
-    cout << "==========IdentifierTable==========" << endl;
-    cout << lexicalAnalyzer.dumpIdentifierTable();
-    cout << "==========IdentifierTable==========" << endl;
+    cout << "========== Identifier Table ==========" << endl;
+    cout << identifierTable.dumpTable();
+    cout << "========== Identifier Table ==========" << endl << endl;
+
+    cout << "========== Syntax Analyze ==========" << endl;
+
+    cout << "========== Syntax Analyze ==========" << endl << endl;
 
     cout << "按回车继续" << endl;
     system("read");
