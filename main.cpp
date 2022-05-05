@@ -1,43 +1,57 @@
 #include <bits/stdc++.h>
-#include <cstdlib>
 
 using namespace std;
 
-/**
- * <程序> →<变量说明部分>;<语句部分>
- * <变量说明部分> → <变量说明><标识符列表>
- * <变量说明> → int
- * <标识符列表> → <标识符列表>,<标识符>|<标识符>
- * <标识符> → $<字母>|<标识符><字母>|<标识符><数字>
- * <语句部分> → <语句部分><语句>;|<语句>;
- * <语句> → <赋值语句>|<条件语句>|<循环语句>|
- * <赋值语句> → <标识符>=<表达式>
- * <表达式> → <项>|<表达式><加法运算符><项>
- * <项> → <因子>|<项><乘法运算符><因子>
- * <因子> → <标识符>|<常量>|(<表达式>)
- * <常量> → <无符号整数>
- * <无符号整数> → <数字序列>
- * <数字序列> → <数字序列><数字>|<数字>
- * <加法运算符> → +
- * <乘法运算符> → *
- * <关系运算符> → <|>|!= |>=|<= |==
- * <条件> → <表达式><关系运算符><表达式>
- * <复合语句> → begin <语句部分> end
- * <条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>
- * <循环语句> → while （<条件>） do <嵌套语句>
- * <嵌套语句> → <语句>|<复合语句>
- * <字母> → a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z
- * <数字> → 0|1|2|3|4|5|6|7|8|9
- */
+// 四个一级分类（保留字，常数，符号，标识符）；保留字、符号有二级分类。
+#define WORD 100
+#define WORD_INT 101
+#define WORD_BEGIN 102
+#define WORD_END 103
+#define WORD_IF 104
+#define WORD_ELSE 105
+#define WORD_THEN 106
+#define WORD_WHILE 107
+#define WORD_DO 108
+#define NUM 200
+#define SYMBOL 300
+#define SYMBOL_ADD 301
+#define SYMBOL_MUL 302
+#define SYMBOL_LT 303
+#define SYMBOL_GT 304
+#define SYMBOL_LE 305
+#define SYMBOL_GE 306
+#define SYMBOL_NE 307
+#define SYMBOL_EQ 308
+#define SYMBOL_COMMA 309
+#define SYMBOL_SEMICOLON 310
+#define SYMBOL_LPAREN 311
+#define SYMBOL_RPAREN 312
+#define SYMBOL_ASSIGN 313
+#define IDENTIFIER 400
 
-#define WORD 1
-#define NUM 2
-#define SYMBOL 3
-#define IDENTIFIER 4
-
-// 标识符      $字母+数字
-const unordered_set<string> reserved_words = {"begin", "end", "int", "if", "else", "then", "while", "do"};
-const unordered_set<string> reserved_symbols = {"+", "*", "<", ">", "!=", ">=", "<=", "==", ",", ";", "(", ")", "="};
+// 保留字到词法类型映射
+const unordered_map<string, int> reserved_words = {{"int", WORD_INT},
+                                                   {"begin", WORD_BEGIN},
+                                                   {"end", WORD_END},
+                                                   {"if", WORD_IF},
+                                                   {"else", WORD_ELSE},
+                                                   {"then", WORD_THEN},
+                                                   {"while", WORD_WHILE},
+                                                   {"do", WORD_DO}};
+// 保留符号到词法类型映射，附赠词法分析部分的文字描述
+const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBOL_ADD,       "加法运算符"}},
+                                                                   {"*",  {SYMBOL_MUL,       "乘法运算符"}},
+                                                                   {"<",  {SYMBOL_LT,        "关系运算符"}},
+                                                                   {">",  {SYMBOL_GT,        "关系运算符"}},
+                                                                   {"<=", {SYMBOL_LE,        "关系运算符"}},
+                                                                   {">=", {SYMBOL_GE,        "关系运算符"}},
+                                                                   {"!=", {SYMBOL_NE,        "关系运算符"}},
+                                                                   {"==", {SYMBOL_EQ,        "关系运算符"}},
+                                                                   {",",  {SYMBOL_COMMA,     "分隔符逗号"}},
+                                                                   {";",  {SYMBOL_SEMICOLON, "分隔符分号"}},
+                                                                   {"(",  {SYMBOL_LPAREN,    "左括号"}},
+                                                                   {")",  {SYMBOL_RPAREN,    "右括号"}},
+                                                                   {"=",  {SYMBOL_ASSIGN,    "赋值号"}}};
 const unordered_set<char> legal_symbols = {'+', '*', '<', '>', '!', ',', ';', '(', ')', '='};
 const unordered_set<char> ignore_symbols = {' ', '\n', '\t'};
 
@@ -115,45 +129,25 @@ public:
     }
 
     /**
-     * 重置内容指针
-     */
-    void resetCur() {
-        ptr = 0;
-    }
-
-    /**
      * 解析代码中的标识符，并输出到标识符表
      * @param identifierTable 标识符表
      */
-    void analyzeIdentifier(IdentifierTable& identifierTable) {
+    void analyzeIdentifier(IdentifierTable &identifierTable) {
         identifierTable.clearTable();
-        resetCur();
+        ptr = 0;
         string res;
         int type;
         while (!ptr_arrive_end(ptr)) {
             getNextWord(res, type);
-            switch (type) {
-                case WORD:
-                    cout << "(关键字, " << res << ")" << endl;
-                    break;
-                case NUM:
-                    cout << "(常数, " << res << ")" << endl;
-                    break;
-                case SYMBOL:
-                    cout << "(符号, " << res << ")" << endl;
-                    break;
-                case IDENTIFIER:
-                    cout << "(标识符, " << res << ")" << endl;
-                    identifierTable.addIdentifier(res);
-                    break;
-                default: break;
-            }
+            if (type == IDENTIFIER)
+                identifierTable.addIdentifier(res);
+            cout << res << " " << type << endl;
         }
-        resetCur();
+        ptr = 0;
     }
 
     /**
-     * 按顺序获取下一个词
+     * 按顺序获取下一个词。若获取失败，不会改变传入的变量。
      * @param res 传入引用，用于传出下一个词
      * @param type 传入引用，用于传出下一个词的类型
      * @return 表示是否正确获取到下一个词
@@ -167,9 +161,9 @@ public:
         }
 
         // 枚举长度向后拼接，并输出二元式
-        int len = 0;
+        int len = 0, lv1_type = start_type(source[ptr]), lv2_type = 0;
         string sub_word;
-        switch (start_type(source[ptr])) {
+        switch (lv1_type) {
             case WORD:
                 do {
                     len++;
@@ -179,10 +173,12 @@ public:
                          is_letter(source[ptr + len]));  // 字符合法
                 if (!is_reserved_words(sub_word)) {
                     cout << "[Lexical Error]: Word at " << ptr << ", " << sub_word <<
-                         " is not a reserved word! Will ignore it!" << endl;
+                         " is not a reserved next_word! Will ignore it!" << endl;
                     ptr += len;
                     return false;
-                }
+                }  // 处理匹配结束但非法情况
+                lv2_type = reserved_words.find(sub_word)->second;
+                cout << "【词】(保留字" << sub_word << ", " << sub_word << ")" << endl;
                 break;
 
             case NUM:
@@ -191,6 +187,7 @@ public:
                     sub_word = source.substr(ptr, len);
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          is_digit(source[ptr + len]));  // 字符合法，可以拼成更长的数字序列
+                cout << "【词】(常量, " << sub_word << ")" << endl;
                 break;
 
             case SYMBOL:
@@ -199,6 +196,8 @@ public:
                     sub_word = source.substr(ptr, len);
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          source[ptr + len] == '=');  // 字符合法，考虑 "!=", ">=", "<=", "=="
+                lv2_type = reserved_symbols.find(sub_word)->second.first;
+                cout << "【词】(" << reserved_symbols.find(sub_word)->second.second << ", " << sub_word << ")" << endl;
                 break;
 
             case IDENTIFIER:
@@ -208,15 +207,16 @@ public:
                 } while (!ptr_arrive_end(ptr + len) &&  // 防越界
                          (is_letter(source[ptr + len]) ||
                           is_digit(source[ptr + len])));  // 变量名由$开头，并由字母或数字组成
+                cout << "【词】(标识符, " << sub_word << ")" << endl;
                 break;
 
             default:  // illegal
-                cout << "[Error]: Word at" << ptr << ", " << source[ptr] << " is not legal!" << endl;
+                cout << "[Lexical Error]: Word at" << ptr << ", " << source[ptr] << " is not legal!" << endl;
                 ptr++;
                 return false;
         }
         res = sub_word;
-        type = start_type(source[ptr]);
+        type = lv2_type != 0 ? lv2_type : lv1_type;
         ptr += len;
         return true;
     }
@@ -224,46 +224,125 @@ public:
 
 class SyntaxAnalyzer {
 private:
-    bool have_error = false;
     LexicalAnalyzer *lexicalAnalyzer;
+    bool have_error = false;
+    pair<string, int> next_word;  // 下一个等待匹配的词
 
 public:
-    explicit SyntaxAnalyzer(LexicalAnalyzer &lexicalAnalyzer) {
+    SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer) : lexicalAnalyzer(lexicalAnalyzer) {}
 
+/**
+ * <程序> → <变量说明部分>;<语句部分>
+ * <变量说明部分> → int<标识符列表>
+ * <标识符列表> → <标识符><标识符列表prime>
+ * <标识符列表prime> → ,<标识符><标识符列表prime>|ε
+ * <语句部分> → <语句>;<语句部分prime>
+ * <语句部分prime> → <语句>;<语句部分prime>|ε
+ * <语句> → <赋值语句>|<条件语句>|<循环语句>|
+ * <赋值语句> → <标识符>=<表达式>
+ * <条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>
+ * <循环语句> → while （<条件>） do <嵌套语句>
+ * <表达式> → <项><表达式prime>
+ * <表达式prime> → +<项><表达式prime>|ε
+ * <项> → <因子><项prime>
+ * <项prime> → *<因子><项prime>|ε
+ * <因子> → <标识符>|<常量>|(<表达式>)
+ * <条件> → <表达式><关系运算符><表达式>
+ * <嵌套语句> → <语句>|<复合语句>
+ * <复合语句> → begin <语句部分> end
+ */
+
+    bool parseProgram() {
+        cout << "【语】推导：<程序> -> <变量说明部分>;<语句部分>" << endl;
+        parseExplainVars();
+        match_word(SYMBOL_SEMICOLON);
+        parseStatementSection();
+        return true;
     }
 
-    // void parse_PROGRAM() {
-    //     cout << "<程序> -> <变量说明部分>;<语句部分>" << endl;
-    //     parse_DATA();
-    //     parse_CODE();
-    // }
+    bool parseExplainVars() {
+        cout << "【语】推导：<变量说明部分> → int<标识符列表>" << endl;
+        match_word(WORD_INT);
+        parseIdentifierList();
+        return true;
+    }
 
-private:
-    // void parse_DATA() {
-    //     match_word()
-    // }
-    //
-    // void parse_CODE() {
-    //
-    // }
-    //
-    // void match_word(int expected_type) {
-    //     if (lookahead_type != expected_type) {
-    //         cout << "Line " << cur_line << ": " << endl;
-    //         cout << "[Syntax error]: Expect ";
-    //         if (expected_type == 0 || expected_type == 24) {
-    //             cout << error_check[expected_type] << " \"" << next_word.value << "\"";
-    //         } else {
-    //             cout << "\"" << error_check[expected_type] << "\"";
-    //         }
-    //         cout << ", but get \"" << next_word.value << "\"." << endl;
-    //         // exit(0);
-    //         have_error = true;
-    //     }
-    //     take_word();
-    //     lookahead_type = next_word.type;
-    //
-    // }
+    bool parseIdentifierList() {
+        cout << "【语】推导：<标识符列表> → <标识符><标识符列表prime>" << endl;
+        match_word(IDENTIFIER);
+        parseIdentifierListPrime();
+        return true;
+    }
+
+    bool parseIdentifierListPrime() {
+        cout << "【语】推导：<标识符列表prime> → ,<标识符><标识符列表prime>|ε" << endl;
+        match_word(SYMBOL_COMMA);
+        match_word(IDENTIFIER);
+        return true;
+    }
+
+    bool parseStatementSection() {
+        cout << "【语】推导：<语句部分> → <语句>;<语句部分prime>" << endl;
+        return true;
+    }
+
+    bool parseStatementSectionPrime() {
+        cout << "【语】推导：<语句部分prime> → <语句>;<语句部分prime>|ε" << endl;
+        return true;
+    }
+
+    bool parseStatement() {
+        cout << "【语】推导：<语句> → <赋值语句>|<条件语句>|<循环语句>|" << endl;
+        return true;
+    }
+
+    bool parseAssignStatement() {
+        cout << "【语】推导：<赋值语句> → <标识符>=<表达式>" << endl;
+        return true;
+    }
+
+    bool parseIfStatement() {
+        cout << "【语】推导：<条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>" << endl;
+        return true;
+    }
+
+    bool parseWhileStatement() {
+        cout << "【语】推导：<循环语句> → while （<条件>） do <嵌套语句>" << endl;
+        return true;
+    }
+
+    bool parseExpression() {
+        cout << "【语】推导：<表达式> → <项><表达式prime>" << endl;
+        return true;
+    }
+
+    bool parseExpressionPrime() {
+        cout << "【语】推导：<表达式prime> → <加法运算符><项><表达式prime>|ε" << endl;
+        return true;
+    }
+
+    bool parseItem() {
+        cout << "【语】推导：<表达式prime> → <加法运算符><项><表达式prime>|ε" << endl;
+        return true;
+    }
+
+
+    void match_word(int expected_type) {
+        if (next_word.second != expected_type) {
+            cout << "[Syntax error]: Expect ";
+            // if (expected_type == 0 || expected_type == 24) {
+            //     cout << error_check[expected_type] << " \"" << next_word.value << "\"";
+            // } else {
+            //     cout << "\"" << error_check[expected_type] << "\"";
+            // }
+            // cout << ", but get \"" << next_word.value << "\"." << endl;
+            have_error = true;
+        } else {
+            cout << "success" << endl;
+
+        }
+        lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
+    }
 };
 
 string readFile(const string &filePath) {
@@ -283,31 +362,19 @@ string readFile(const string &filePath) {
 }
 
 int main() {
-    string source = readFile("source.txt") + "#";
+    string source = readFile("in.txt") + "#";
     if (source.empty() || source == "#") {
         cout << "[Error]: Read Nothing!" << endl;
         return -1;
     }
 
-    cout << "========== Source Code ==========" << endl;
-    cout << source << endl;
-    cout << "========== Source Code ==========" << endl << endl;
-
-    cout << "========== Lexical Analyze ==========" << endl;
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
     lexicalAnalyzer.analyzeIdentifier(identifierTable);
-    cout << "========== Lexical Analyze ==========" << endl << endl;
+    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer);
+    // syntaxAnalyzer.parseProgram();
 
-    cout << "========== Identifier Table ==========" << endl;
-    cout << identifierTable.dumpTable();
-    cout << "========== Identifier Table ==========" << endl << endl;
-
-    cout << "========== Syntax Analyze ==========" << endl;
-
-    cout << "========== Syntax Analyze ==========" << endl << endl;
-
-    cout << "按回车继续" << endl;
-    system("read");
+    // cout << "按回车继续" << endl;
+    // system("read");
     return 0;
 }
