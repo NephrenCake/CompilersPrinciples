@@ -2,6 +2,7 @@
 
 using namespace std;
 
+// ********************类型定义********************
 // 四个一级分类（保留字，常数，符号，标识符）；保留字、符号有二级分类。
 #define WORD 100
 #define WORD_INT 101
@@ -55,18 +56,35 @@ const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBO
 const unordered_set<char> legal_symbols = {'+', '*', '<', '>', '!', ',', ';', '(', ')', '='};
 const unordered_set<char> ignore_symbols = {' ', '\n', '\t'};
 
-// 标识符表
-class IdentifierTable {
-    struct Identifier {
-        string name;
-        string type;
-        string value;
-    };
+string getTypenameByID(int ID) {
+    switch (ID / 100) {
+        case 1:
+            for (auto &i: reserved_words)
+                if (i.second == ID)
+                    return i.first;
+        case 2:
+            return "常量";
+        case 3:
+            for (auto &i: reserved_symbols)
+                if (i.second.first == ID)
+                    return i.first;
+        case 4:
+            return "IDENTIFIER";
+        default:
+            return "Unknown";
+    }
+}
 
+// ********************标识符表********************
+struct Identifier {
+    string name, type, value;
+};
+
+class IdentifierTable {
     unordered_map<string, Identifier> table;
 
 public:
-    bool addIdentifier(string name) {
+    bool addIdentifier(const string &name) {
         if (existIdentifier(name))
             return false;
         table[name] = {name, "", ""};
@@ -86,12 +104,26 @@ public:
         return res;
     }
 
-    bool existIdentifier(string &name) {
+    bool existIdentifier(const string &name) {
         return table.find(name) != table.end();
+    }
+
+    bool updateIdentifierType(const string &name, const string &type) {
+        if (!existIdentifier(name))
+            return false;
+        table[name].type = type;
+        return true;
+    }
+
+    bool updateIdentifierValue(const string &name, int value) {
+        if (!existIdentifier(name))
+            return false;
+        table[name].value = to_string(value);
+        return true;
     }
 };
 
-// 词法分析部分
+// ********************词法分析部分********************
 class LexicalAnalyzer {
 private:
     int ptr{};
@@ -158,11 +190,16 @@ public:
         while (!ptr_arrive_end(ptr) && ignore_symbols.count(source[ptr]) != 0)
             ptr++;  // 忽略可忽略字符，并且指针没到文末
         if (ptr_arrive_end(ptr)) {
-            if (source[ptr] != '#')
+            if (source[ptr] != '#') {
                 cout << "[Warning]: no words any more!" << endl;
-            res = '#';
-            type = -1;
-            return false;
+                return false;
+            } else {
+                res = '#';
+                type = -1;
+                cout << "【词】(#, #)" << endl;
+                cout << "词法分析结束" << endl;
+                return true;
+            }
         }
 
         // 枚举长度向后拼接，并输出二元式
@@ -227,7 +264,7 @@ public:
     }
 };
 
-// 语法分析部分
+// ********************语法语义分析部分********************
 /**
  * <程序> → <变量说明部分>;<语句部分>
  * <变量说明部分> → int<标识符列表>
@@ -251,12 +288,14 @@ public:
 class SyntaxAnalyzer {
 private:
     LexicalAnalyzer *lexicalAnalyzer;
+    IdentifierTable *identifierTable;
     bool have_error = false;
     pair<string, int> next_word;  // 下一个等待匹配的词 <词, 类型>
 
 public:
-    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer) {
+    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer, IdentifierTable *identifierTable) {
         this->lexicalAnalyzer = lexicalAnalyzer;
+        this->identifierTable = identifierTable;
         this->lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
     }
 
@@ -266,27 +305,36 @@ public:
         match_word(SYMBOL_SEMICOLON);
         parseStatementSection();
         if (have_error) cout << "[Syntax error]: Parse program failed!" << endl;
+        cout << "语法分析结束" << endl;
     }
 
     void parseExplainVars() {
         cout << "【语】推导：<变量说明部分> → int<标识符列表>" << endl;
         match_word(WORD_INT);
-        parseIdentifierList();
+        parseIdentifierList(WORD_INT);
     }
 
-    void parseIdentifierList() {
+    void parseIdentifierList(int identifierType) {
         cout << "【语】推导：<标识符列表> → <标识符><标识符列表prime>" << endl;
-        match_word(IDENTIFIER);
-        parseIdentifierListPrime();
+        if (next_word.second == IDENTIFIER) {
+            identifierTable->addIdentifier(next_word.first);
+            identifierTable->updateIdentifierType(next_word.first, getTypenameByID(identifierType));
+            match_word(IDENTIFIER);
+        }
+        parseIdentifierListPrime(identifierType);
     }
 
-    void parseIdentifierListPrime() {
+    void parseIdentifierListPrime(int identifierType) {
         cout << "【语】推导：<标识符列表prime> → ,<标识符><标识符列表prime>|ε" << endl;
         if (next_word.second != SYMBOL_COMMA)
             return;
         match_word(SYMBOL_COMMA);
-        match_word(IDENTIFIER);
-        parseIdentifierListPrime();
+        if (next_word.second == IDENTIFIER) {
+            identifierTable->addIdentifier(next_word.first);
+            identifierTable->updateIdentifierType(next_word.first, getTypenameByID(identifierType));
+            match_word(IDENTIFIER);
+        }
+        parseIdentifierListPrime(identifierType);
     }
 
     void parseStatementSection() {
@@ -417,6 +465,48 @@ public:
     }
 };
 
+// ********************四元式表********************
+class CodeTable {
+private:
+    struct Quaternary {
+        string op, arg1, arg2, result;
+    };
+
+    vector<Quaternary> quaternaries;
+
+public:
+    bool addQuaternary(const string &op, const string &arg1, const string &arg2, const string &result) {
+        quaternaries.push_back({op, arg1, arg2, result});
+        return true;
+    }
+
+    inline int NXQ() {
+        return (int) quaternaries.size();
+    }
+
+    bool updateResultByIndex(int idx, const string &result) {
+        if (idx < 0 || idx >= quaternaries.size())
+            return false;
+        quaternaries[idx].result = result;
+        return true;
+    }
+
+    void clearTable() {
+        quaternaries.clear();
+    }
+
+    string dumpTable() {
+        string res;
+        for (auto &item: quaternaries)
+            res += "op: " + item.op + "  " +
+                   "arg1: " + item.arg1 + "  " +
+                   "arg2: " + item.arg2 + "  " +
+                   "result: " + item.result + "\n";
+        return res;
+    }
+};
+
+// ********************utils********************
 string readFile(const string &filePath) {
     ifstream ifs;
     ifs.open(filePath, ios::in);
@@ -442,10 +532,12 @@ int main() {
 
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
+    CodeTable codeTable;
     // lexicalAnalyzer.analyzeIdentifier(identifierTable);
-    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer);
+    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable);
     syntaxAnalyzer.parseProgram();
 
+    cout << "标识符表：\n" << identifierTable.dumpTable() << endl;
     // cout << "按回车继续" << endl;
     // system("read");
     return 0;
