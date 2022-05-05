@@ -55,6 +55,7 @@ const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBO
 const unordered_set<char> legal_symbols = {'+', '*', '<', '>', '!', ',', ';', '(', ')', '='};
 const unordered_set<char> ignore_symbols = {' ', '\n', '\t'};
 
+// 标识符表
 class IdentifierTable {
     struct Identifier {
         string name;
@@ -90,6 +91,7 @@ public:
     }
 };
 
+// 词法分析部分
 class LexicalAnalyzer {
 private:
     int ptr{};
@@ -175,8 +177,8 @@ public:
                          !ptr_arrive_end(ptr + len) &&  // 防越界
                          is_letter(source[ptr + len]));  // 字符合法
                 if (!is_reserved_words(sub_word)) {
-                    cout << "[Lexical Error]: Word at " << ptr << ", " << sub_word <<
-                         " is not a reserved next_word! Will ignore it!" << endl;
+                    cout << "[Lexical Error]: Word at " << ptr << ", '" << sub_word <<
+                         "' is not a reserved next_word! Will ignore it!" << endl;
                     ptr += len;
                     return false;
                 }  // 处理匹配结束但非法情况
@@ -225,18 +227,7 @@ public:
     }
 };
 
-class SyntaxAnalyzer {
-private:
-    LexicalAnalyzer *lexicalAnalyzer;
-    bool have_error = false;
-    pair<string, int> next_word;  // 下一个等待匹配的词 <词, 类型>
-
-public:
-    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer) {
-        this->lexicalAnalyzer = lexicalAnalyzer;
-        this->lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
-    }
-
+// 语法分析部分
 /**
  * <程序> → <变量说明部分>;<语句部分>
  * <变量说明部分> → int<标识符列表>
@@ -257,76 +248,78 @@ public:
  * <嵌套语句> → <语句>|<复合语句>
  * <复合语句> → begin <语句部分> end
  */
+class SyntaxAnalyzer {
+private:
+    LexicalAnalyzer *lexicalAnalyzer;
+    bool have_error = false;
+    pair<string, int> next_word;  // 下一个等待匹配的词 <词, 类型>
 
-    bool parseProgram() {
+public:
+    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer) {
+        this->lexicalAnalyzer = lexicalAnalyzer;
+        this->lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
+    }
+
+    void parseProgram() {
         cout << "【语】推导：<程序> -> <变量说明部分>;<语句部分>" << endl;
         parseExplainVars();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSection();
-        // cout << "parseProgram success" << endl;
-        return true;
+        if (have_error) cout << "[Syntax error]: Parse program failed!" << endl;
     }
 
-    bool parseExplainVars() {
+    void parseExplainVars() {
         cout << "【语】推导：<变量说明部分> → int<标识符列表>" << endl;
         match_word(WORD_INT);
         parseIdentifierList();
-        return true;
     }
 
-    bool parseIdentifierList() {
+    void parseIdentifierList() {
         cout << "【语】推导：<标识符列表> → <标识符><标识符列表prime>" << endl;
         match_word(IDENTIFIER);
         parseIdentifierListPrime();
-        return true;
     }
 
-    bool parseIdentifierListPrime() {
+    void parseIdentifierListPrime() {
         cout << "【语】推导：<标识符列表prime> → ,<标识符><标识符列表prime>|ε" << endl;
         if (next_word.second != SYMBOL_COMMA)
-            return true;
+            return;
         match_word(SYMBOL_COMMA);
         match_word(IDENTIFIER);
         parseIdentifierListPrime();
-        return true;
     }
 
-    bool parseStatementSection() {
+    void parseStatementSection() {
         cout << "【语】推导：<语句部分> → <语句>;<语句部分prime>" << endl;
         parseStatement();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSectionPrime();
-        return true;
     }
 
-    bool parseStatementSectionPrime() {
+    void parseStatementSectionPrime() {
         cout << "【语】推导：<语句部分prime> → <语句>;<语句部分prime>|ε" << endl;
         if (next_word.second != IDENTIFIER && next_word.second != WORD_IF && next_word.second != WORD_WHILE)
-            return true;
+            return;
         parseStatement();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSectionPrime();
-        return true;
     }
 
-    bool parseStatement() {
+    void parseStatement() {
         cout << "【语】推导：<语句> → <赋值语句>|<条件语句>|<循环语句>" << endl;
         if (next_word.second == IDENTIFIER) parseAssignStatement();
         else if (next_word.second == WORD_IF) parseIfStatement();
         else if (next_word.second == WORD_WHILE) parseWhileStatement();
-        else return false;
-        return true;
     }
 
-    bool parseAssignStatement() {
+    void parseAssignStatement() {
         cout << "【语】推导：<赋值语句> → <标识符>=<表达式>" << endl;
         match_word(IDENTIFIER);
         match_word(SYMBOL_ASSIGN);
         parseExpression();
-        return true;
     }
 
-    bool parseIfStatement() {
+    void parseIfStatement() {
         cout << "【语】推导：<条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>" << endl;
         match_word(WORD_IF);
         match_word(SYMBOL_LPAREN);
@@ -337,10 +330,9 @@ public:
         match_word(SYMBOL_SEMICOLON);
         match_word(WORD_ELSE);
         parseNestedStatement();
-        return true;
     }
 
-    bool parseWhileStatement() {
+    void parseWhileStatement() {
         cout << "【语】推导：<循环语句> → while （<条件>） do <嵌套语句>" << endl;
         match_word(WORD_WHILE);
         match_word(SYMBOL_LPAREN);
@@ -348,44 +340,39 @@ public:
         match_word(SYMBOL_RPAREN);
         match_word(WORD_DO);
         parseNestedStatement();
-        return true;
     }
 
-    bool parseExpression() {
+    void parseExpression() {
         cout << "【语】推导：<表达式> → <项><表达式prime>" << endl;
         parseItem();
         parseExpressionPrime();
-        return true;
     }
 
-    bool parseExpressionPrime() {
+    void parseExpressionPrime() {
         cout << "【语】推导：<表达式prime> → +<项><表达式prime>|ε" << endl;
         if (next_word.second != SYMBOL_ADD)
-            return true;
+            return;
         match_word(SYMBOL_ADD);
         parseItem();
         parseExpressionPrime();
-        return true;
     }
 
-    bool parseItem() {
+    void parseItem() {
         cout << "【语】推导：<项> → <因子><项prime>" << endl;
         parseFactor();
         parseItemPrime();
-        return true;
     }
 
-    bool parseItemPrime() {
+    void parseItemPrime() {
         cout << "【语】推导：<项prime> → *<因子><项prime>|ε" << endl;
         if (next_word.second != SYMBOL_MUL)
-            return true;
+            return;
         match_word(SYMBOL_MUL);
         parseFactor();
         parseItemPrime();
-        return true;
     }
 
-    bool parseFactor() {
+    void parseFactor() {
         cout << "【语】推导：<因子> → <标识符>|<常量>|(<表达式>)" << endl;
         if (next_word.second == IDENTIFIER)
             match_word(IDENTIFIER);
@@ -396,45 +383,36 @@ public:
             parseExpression();
             match_word(SYMBOL_RPAREN);
         }
-        return true;
     }
 
-    bool parseCondition() {
+    void parseCondition() {
         cout << "【语】推导：<条件> → <表达式><关系运算符><表达式>" << endl;
         parseExpression();
         if (SYMBOL_LT <= next_word.second && next_word.second <= SYMBOL_EQ)
             match_word(next_word.second);
-        else
-            return false;
         parseExpression();
-        return true;
     }
 
-    bool parseNestedStatement() {
+    void parseNestedStatement() {
         cout << "【语】推导：<嵌套语句> → <语句>|<复合语句>" << endl;
         if (next_word.second == WORD_BEGIN)
             parseCompoundStatement();
         else
             parseStatement();
-        return true;
     }
 
-    bool parseCompoundStatement() {
+    void parseCompoundStatement() {
         cout << "【语】推导：<复合语句> → begin <语句部分> end" << endl;
         match_word(WORD_BEGIN);
         parseStatementSection();
         match_word(WORD_END);
-        return true;
     }
-
 
     void match_word(int expected_type) {
         if (next_word.second != expected_type) {
-            cout << "[Syntax error]: Expect " << expected_type << ", but got " << next_word.first << endl;
+            cout << "[Syntax error]: Expect type " << expected_type << ", but got '" << next_word.first << "'" << endl;
             have_error = true;
         }
-        if (have_error)
-            cout << "track >>>> " << next_word.first << endl;
         lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
     }
 };
