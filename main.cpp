@@ -264,6 +264,49 @@ public:
     }
 };
 
+
+
+// ********************四元式表********************
+class CodeTable {
+private:
+    struct Quaternary {
+        string op, arg1, arg2, result;
+    };
+
+    vector<Quaternary> quaternaries;
+
+public:
+    bool addQuaternary(const string &op, const string &arg1, const string &arg2, const string &result) {
+        quaternaries.push_back({op, arg1, arg2, result});
+        return true;
+    }
+
+    inline int NXQ() {
+        return (int) quaternaries.size();
+    }
+
+    bool updateResultByIndex(int idx, const string &result) {
+        if (idx < 0 || idx >= quaternaries.size())
+            return false;
+        quaternaries[idx].result = result;
+        return true;
+    }
+
+    void clearTable() {
+        quaternaries.clear();
+    }
+
+    string dumpTable() {
+        string res;
+        for (auto &item: quaternaries)
+            res += "op: " + item.op + "  " +
+                   "arg1: " + item.arg1 + "  " +
+                   "arg2: " + item.arg2 + "  " +
+                   "result: " + item.result + "\n";
+        return res;
+    }
+};
+
 // ********************语法语义分析部分********************
 /**
  * <程序> → <变量说明部分>;<语句部分>
@@ -289,13 +332,15 @@ class SyntaxAnalyzer {
 private:
     LexicalAnalyzer *lexicalAnalyzer;
     IdentifierTable *identifierTable;
+    CodeTable *codeTable;
     bool have_error = false;
     pair<string, int> next_word;  // 下一个等待匹配的词 <词, 类型>
 
 public:
-    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer, IdentifierTable *identifierTable) {
+    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer, IdentifierTable *identifierTable, CodeTable *codeTable) {
         this->lexicalAnalyzer = lexicalAnalyzer;
         this->identifierTable = identifierTable;
+        this->codeTable = codeTable;
         this->lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
     }
 
@@ -465,47 +510,6 @@ public:
     }
 };
 
-// ********************四元式表********************
-class CodeTable {
-private:
-    struct Quaternary {
-        string op, arg1, arg2, result;
-    };
-
-    vector<Quaternary> quaternaries;
-
-public:
-    bool addQuaternary(const string &op, const string &arg1, const string &arg2, const string &result) {
-        quaternaries.push_back({op, arg1, arg2, result});
-        return true;
-    }
-
-    inline int NXQ() {
-        return (int) quaternaries.size();
-    }
-
-    bool updateResultByIndex(int idx, const string &result) {
-        if (idx < 0 || idx >= quaternaries.size())
-            return false;
-        quaternaries[idx].result = result;
-        return true;
-    }
-
-    void clearTable() {
-        quaternaries.clear();
-    }
-
-    string dumpTable() {
-        string res;
-        for (auto &item: quaternaries)
-            res += "op: " + item.op + "  " +
-                   "arg1: " + item.arg1 + "  " +
-                   "arg2: " + item.arg2 + "  " +
-                   "result: " + item.result + "\n";
-        return res;
-    }
-};
-
 // ********************utils********************
 string readFile(const string &filePath) {
     ifstream ifs;
@@ -533,8 +537,8 @@ int main() {
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
     CodeTable codeTable;
-    // lexicalAnalyzer.analyzeIdentifier(identifierTable);
-    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable);
+
+    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable, &codeTable);
     syntaxAnalyzer.parseProgram();
 
     cout << "标识符表：\n" << identifierTable.dumpTable() << endl;
