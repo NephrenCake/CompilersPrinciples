@@ -29,7 +29,7 @@ using namespace std;
 #define SYMBOL_ASSIGN 313
 #define IDENTIFIER 400
 
-// 保留字到词法类型映射
+// 保留字集合，以及到词法类型映射
 const unordered_map<string, int> reserved_words = {{"int", WORD_INT},
                                                    {"begin", WORD_BEGIN},
                                                    {"end", WORD_END},
@@ -38,7 +38,7 @@ const unordered_map<string, int> reserved_words = {{"int", WORD_INT},
                                                    {"then", WORD_THEN},
                                                    {"while", WORD_WHILE},
                                                    {"do", WORD_DO}};
-// 保留符号到词法类型映射，附赠词法分析部分的文字描述
+// 保留符号集合，以及到词法类型映射，附赠词法分析部分的文字描述
 const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBOL_ADD,       "加法运算符"}},
                                                                    {"*",  {SYMBOL_MUL,       "乘法运算符"}},
                                                                    {"<",  {SYMBOL_LT,        "关系运算符"}},
@@ -156,7 +156,10 @@ public:
         while (!ptr_arrive_end(ptr) && ignore_symbols.count(source[ptr]) != 0)
             ptr++;  // 忽略可忽略字符，并且指针没到文末
         if (ptr_arrive_end(ptr)) {
-            cout << "[Warning]: no words any more!" << endl;
+            if (source[ptr] != '#')
+                cout << "[Warning]: no words any more!" << endl;
+            res = '#';
+            type = -1;
             return false;
         }
 
@@ -226,10 +229,13 @@ class SyntaxAnalyzer {
 private:
     LexicalAnalyzer *lexicalAnalyzer;
     bool have_error = false;
-    pair<string, int> next_word;  // 下一个等待匹配的词
+    pair<string, int> next_word;  // 下一个等待匹配的词 <词, 类型>
 
 public:
-    SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer) : lexicalAnalyzer(lexicalAnalyzer) {}
+    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer) {
+        this->lexicalAnalyzer = lexicalAnalyzer;
+        this->lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
+    }
 
 /**
  * <程序> → <变量说明部分>;<语句部分>
@@ -238,7 +244,7 @@ public:
  * <标识符列表prime> → ,<标识符><标识符列表prime>|ε
  * <语句部分> → <语句>;<语句部分prime>
  * <语句部分prime> → <语句>;<语句部分prime>|ε
- * <语句> → <赋值语句>|<条件语句>|<循环语句>|
+ * <语句> → <赋值语句>|<条件语句>|<循环语句>
  * <赋值语句> → <标识符>=<表达式>
  * <条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>
  * <循环语句> → while （<条件>） do <嵌套语句>
@@ -257,6 +263,7 @@ public:
         parseExplainVars();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSection();
+        // cout << "parseProgram success" << endl;
         return true;
     }
 
@@ -276,71 +283,158 @@ public:
 
     bool parseIdentifierListPrime() {
         cout << "【语】推导：<标识符列表prime> → ,<标识符><标识符列表prime>|ε" << endl;
+        if (next_word.second != SYMBOL_COMMA)
+            return true;
         match_word(SYMBOL_COMMA);
         match_word(IDENTIFIER);
+        parseIdentifierListPrime();
         return true;
     }
 
     bool parseStatementSection() {
         cout << "【语】推导：<语句部分> → <语句>;<语句部分prime>" << endl;
+        parseStatement();
+        match_word(SYMBOL_SEMICOLON);
+        parseStatementSectionPrime();
         return true;
     }
 
     bool parseStatementSectionPrime() {
         cout << "【语】推导：<语句部分prime> → <语句>;<语句部分prime>|ε" << endl;
+        if (next_word.second != IDENTIFIER && next_word.second != WORD_IF && next_word.second != WORD_WHILE)
+            return true;
+        parseStatement();
+        match_word(SYMBOL_SEMICOLON);
+        parseStatementSectionPrime();
         return true;
     }
 
     bool parseStatement() {
-        cout << "【语】推导：<语句> → <赋值语句>|<条件语句>|<循环语句>|" << endl;
+        cout << "【语】推导：<语句> → <赋值语句>|<条件语句>|<循环语句>" << endl;
+        if (next_word.second == IDENTIFIER) parseAssignStatement();
+        else if (next_word.second == WORD_IF) parseIfStatement();
+        else if (next_word.second == WORD_WHILE) parseWhileStatement();
+        else return false;
         return true;
     }
 
     bool parseAssignStatement() {
         cout << "【语】推导：<赋值语句> → <标识符>=<表达式>" << endl;
+        match_word(IDENTIFIER);
+        match_word(SYMBOL_ASSIGN);
+        parseExpression();
         return true;
     }
 
     bool parseIfStatement() {
         cout << "【语】推导：<条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>" << endl;
+        match_word(WORD_IF);
+        match_word(SYMBOL_LPAREN);
+        parseCondition();
+        match_word(SYMBOL_RPAREN);
+        match_word(WORD_THEN);
+        parseNestedStatement();
+        match_word(SYMBOL_SEMICOLON);
+        match_word(WORD_ELSE);
+        parseNestedStatement();
         return true;
     }
 
     bool parseWhileStatement() {
         cout << "【语】推导：<循环语句> → while （<条件>） do <嵌套语句>" << endl;
+        match_word(WORD_WHILE);
+        match_word(SYMBOL_LPAREN);
+        parseCondition();
+        match_word(SYMBOL_RPAREN);
+        match_word(WORD_DO);
+        parseNestedStatement();
         return true;
     }
 
     bool parseExpression() {
         cout << "【语】推导：<表达式> → <项><表达式prime>" << endl;
+        parseItem();
+        parseExpressionPrime();
         return true;
     }
 
     bool parseExpressionPrime() {
-        cout << "【语】推导：<表达式prime> → <加法运算符><项><表达式prime>|ε" << endl;
+        cout << "【语】推导：<表达式prime> → +<项><表达式prime>|ε" << endl;
+        if (next_word.second != SYMBOL_ADD)
+            return true;
+        match_word(SYMBOL_ADD);
+        parseItem();
+        parseExpressionPrime();
         return true;
     }
 
     bool parseItem() {
-        cout << "【语】推导：<表达式prime> → <加法运算符><项><表达式prime>|ε" << endl;
+        cout << "【语】推导：<项> → <因子><项prime>" << endl;
+        parseFactor();
+        parseItemPrime();
+        return true;
+    }
+
+    bool parseItemPrime() {
+        cout << "【语】推导：<项prime> → *<因子><项prime>|ε" << endl;
+        if (next_word.second != SYMBOL_MUL)
+            return true;
+        match_word(SYMBOL_MUL);
+        parseFactor();
+        parseItemPrime();
+        return true;
+    }
+
+    bool parseFactor() {
+        cout << "【语】推导：<因子> → <标识符>|<常量>|(<表达式>)" << endl;
+        if (next_word.second == IDENTIFIER)
+            match_word(IDENTIFIER);
+        else if (next_word.second == NUM)
+            match_word(NUM);
+        else {
+            match_word(SYMBOL_LPAREN);
+            parseExpression();
+            match_word(SYMBOL_RPAREN);
+        }
+        return true;
+    }
+
+    bool parseCondition() {
+        cout << "【语】推导：<条件> → <表达式><关系运算符><表达式>" << endl;
+        parseExpression();
+        if (SYMBOL_LT <= next_word.second && next_word.second <= SYMBOL_EQ)
+            match_word(next_word.second);
+        else
+            return false;
+        parseExpression();
+        return true;
+    }
+
+    bool parseNestedStatement() {
+        cout << "【语】推导：<嵌套语句> → <语句>|<复合语句>" << endl;
+        if (next_word.second == WORD_BEGIN)
+            parseCompoundStatement();
+        else
+            parseStatement();
+        return true;
+    }
+
+    bool parseCompoundStatement() {
+        cout << "【语】推导：<复合语句> → begin <语句部分> end" << endl;
+        match_word(WORD_BEGIN);
+        parseStatementSection();
+        match_word(WORD_END);
         return true;
     }
 
 
     void match_word(int expected_type) {
         if (next_word.second != expected_type) {
-            cout << "[Syntax error]: Expect ";
-            // if (expected_type == 0 || expected_type == 24) {
-            //     cout << error_check[expected_type] << " \"" << next_word.value << "\"";
-            // } else {
-            //     cout << "\"" << error_check[expected_type] << "\"";
-            // }
-            // cout << ", but get \"" << next_word.value << "\"." << endl;
+            cout << "[Syntax error]: Expect " << expected_type << ", but got " << next_word.first << endl;
             have_error = true;
-        } else {
-            cout << "success" << endl;
-
         }
+        if (have_error)
+            cout << "track >>>> " << next_word.first << endl;
         lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
     }
 };
@@ -370,9 +464,9 @@ int main() {
 
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
-    lexicalAnalyzer.analyzeIdentifier(identifierTable);
+    // lexicalAnalyzer.analyzeIdentifier(identifierTable);
     SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer);
-    // syntaxAnalyzer.parseProgram();
+    syntaxAnalyzer.parseProgram();
 
     // cout << "按回车继续" << endl;
     // system("read");
