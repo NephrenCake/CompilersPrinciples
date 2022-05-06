@@ -80,27 +80,68 @@ class Identifier {
 public:
     string name, type, value;
 
-    static inline bool isAbleToCal(const Identifier &i1, const Identifier &i2) {
-        return (i1.type == getTypenameByID(WORD_INT) || i1.type == getTypenameByID(NUM)) &&
-               (i2.type == getTypenameByID(WORD_INT) || i2.type == getTypenameByID(NUM));
+    static bool isAbleToCal(const Identifier &i1, const Identifier &i2) {
+        bool is_ok = (i1.type == getTypenameByID(WORD_INT) || i1.type == getTypenameByID(NUM)) &&
+                     (i2.type == getTypenameByID(WORD_INT) || i2.type == getTypenameByID(NUM));
+        if (!is_ok)
+            cout << "[Semantic error]: Can only use override operator on two INT" << endl;
+        return is_ok;
     }
 
     Identifier operator+(const Identifier &i2) {
         if (isAbleToCal(*this, i2))
             return {"", this->type, to_string(stoi(this->value) + stoi(i2.value))};
-        else {
-            cout << "[Semantic error]: Can only use operator+ on two INT" << endl;
+        else
             return {"", "", ""};
-        }
     }
 
     Identifier operator*(const Identifier &i2) {
         if (isAbleToCal(*this, i2))
             return {"", this->type, to_string(stoi(this->value) * stoi(i2.value))};
-        else {
-            cout << "[Semantic error]: Can only use operator* on two INT" << endl;
+        else
             return {"", "", ""};
-        }
+    }
+
+    bool operator==(const Identifier &i2) const {
+        if (isAbleToCal(*this, i2))
+            return stoi(this->value) == stoi(i2.value);
+        else
+            return false;
+    }
+
+    bool operator!=(const Identifier &i2) const {
+        if (isAbleToCal(*this, i2))
+            return stoi(this->value) != stoi(i2.value);
+        else
+            return false;
+    }
+
+    bool operator<(const Identifier &i2) const {
+        if (isAbleToCal(*this, i2))
+            return stoi(this->value) < stoi(i2.value);
+        else
+            return false;
+    }
+
+    bool operator>(const Identifier &i2) const {
+        if (isAbleToCal(*this, i2))
+            return stoi(this->value) > stoi(i2.value);
+        else
+            return false;
+    }
+
+    bool operator<=(const Identifier &i2) const {
+        if (isAbleToCal(*this, i2))
+            return stoi(this->value) <= stoi(i2.value);
+        else
+            return false;
+    }
+
+    bool operator>=(const Identifier &i2) const {
+        if (isAbleToCal(*this, i2))
+            return stoi(this->value) >= stoi(i2.value);
+        else
+            return false;
     }
 };
 
@@ -165,7 +206,7 @@ private:
 public:
     bool addQuaternary(const string &op, const string &arg1, const string &arg2, const string &result) {
         quaternaries.push_back({op, arg1, arg2, result});
-        cout << "(" + op + ", " + arg1 + ", " + arg2 + ", " + result + ")" << endl;
+        // cout << "(" + op + ", " + arg1 + ", " + arg2 + ", " + result + ")" << endl;
         return true;
     }
 
@@ -188,8 +229,8 @@ public:
         string res;
         for (int i = 0; i < quaternaries.size(); i++) {
             auto &item = quaternaries[i];
-            res += "(" + to_string(i) + ") ("
-                    + item.op + ", " + item.arg1 + ", " + item.arg2 + ", " + item.result + ")\n";
+            res += "(" + to_string(i + 1) + ") ("
+                   + item.op + ", " + item.arg1 + ", " + item.arg2 + ", " + item.result + ")\n";
         }
         return res;
     }
@@ -344,7 +385,8 @@ public:
                 break;
 
             default:  // illegal
-                cout << "[Lexical Error]: Word at" << ptr << ", " << source[ptr] << " is not legal!" << endl;
+                string msg = "[Lexical Error]: Word at" + to_string(ptr) + ", " + source[ptr] + " is not legal!";
+                cout << msg << endl;
                 ptr++;
                 return false;
         }
@@ -480,23 +522,45 @@ public:
         cout << "【语】推导：<条件语句> → if （<条件>） then <嵌套语句>; else <嵌套语句>" << endl;
         match_word(WORD_IF);
         match_word(SYMBOL_LPAREN);
-        parseCondition();
+        Identifier E = parseCondition();
         match_word(SYMBOL_RPAREN);
         match_word(WORD_THEN);
+
+        codeTable->addQuaternary("jnz", E.name, "null", to_string(codeTable->NXQ() + 2));
+        // 假出口
+        int falseExitIndex = codeTable->NXQ();
+        codeTable->addQuaternary("j", "null", "null", "0");
+
         parseNestedStatement();
+        int exitIndex = codeTable->NXQ();
+        codeTable->addQuaternary("j", "null", "null", "0");
+        // 回填假出口
+        codeTable->updateResultByIndex(falseExitIndex, to_string(codeTable->NXQ()));
         match_word(SYMBOL_SEMICOLON);
         match_word(WORD_ELSE);
         parseNestedStatement();
+        // 回填真出口
+        codeTable->updateResultByIndex(exitIndex, to_string(codeTable->NXQ()));
     }
 
     void parseWhileStatement() {
         cout << "【语】推导：<循环语句> → while （<条件>） do <嵌套语句>" << endl;
         match_word(WORD_WHILE);
         match_word(SYMBOL_LPAREN);
-        parseCondition();
+
+        int nextIndex = codeTable->NXQ();
+        Identifier E = parseCondition();
+        codeTable->addQuaternary("jnz", E.name, "null", to_string(codeTable->NXQ() + 2));
+        // 假出口，莫忘回填
+        int falseExitIndex = codeTable->NXQ();
+        codeTable->addQuaternary("j", "null", "null", "0");
+
         match_word(SYMBOL_RPAREN);
         match_word(WORD_DO);
         parseNestedStatement();
+
+        codeTable->addQuaternary("j", "null", "null", to_string(nextIndex));
+        codeTable->updateResultByIndex(falseExitIndex, to_string(codeTable->NXQ()));
     }
 
     Identifier parseExpression() {
@@ -555,12 +619,31 @@ public:
         return E;
     }
 
-    void parseCondition() {
+    Identifier parseCondition() {
         cout << "【语】推导：<条件> → <表达式><关系运算符><表达式>" << endl;
-        parseExpression();
+        string op = getTypenameByID(next_word.second), temp;
+
+        Identifier E1 = parseExpression();
         if (SYMBOL_LT <= next_word.second && next_word.second <= SYMBOL_EQ)
             match_word(next_word.second);
-        parseExpression();
+        Identifier E2 = parseExpression();
+
+        if (op == "==") {
+            temp = E1 == E2 ? "true" : "false";
+        } else if (op == "!=") {
+            temp = E1 != E2 ? "true" : "false";
+        } else if (op == "<") {
+            temp = E1 < E2 ? "true" : "false";
+        } else if (op == ">") {
+            temp = E1 > E2 ? "true" : "false";
+        } else if (op == "<=") {
+            temp = E1 <= E2 ? "true" : "false";
+        } else if (op == ">=") {
+            temp = E1 >= E2 ? "true" : "false";
+        }
+        Identifier E3 = {tempVarTable->getNewTempVarName(), "bool", temp};
+        codeTable->addQuaternary(op, E1.name, E2.name, E3.name);
+        return E3;
     }
 
     void parseNestedStatement() {
@@ -592,8 +675,10 @@ string readFile(const string &filePath) {
     ifstream ifs;
     ifs.open(filePath, ios::in);
 
-    if (!ifs.is_open())
+    if (!ifs.is_open()) {
+        cout << "[Error]: Open file failed!" << endl;
         return "";
+    }
 
     string buf;
     string content;
@@ -604,12 +689,19 @@ string readFile(const string &filePath) {
     return content;
 }
 
+void writeFile(const string &filePath, const string &content) {
+    ofstream ofs;
+    ofs.open(filePath, ios::out);
+    if (!ofs.is_open()) {
+        cout << "[Error]: Open file failed!" << endl;
+        return;
+    }
+    ofs << content;
+    ofs.close();
+}
+
 int main() {
     string source = readFile("in.txt") + "#";
-    if (source.empty() || source == "#") {
-        cout << "[Error]: Read Nothing!" << endl;
-        return -1;
-    }
 
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
@@ -622,7 +714,10 @@ int main() {
     cout << "\n标识符表：\n" << identifierTable.dumpTable();
     cout << "临时变量表：\n" << tempVarTable.dumpTable();
     cout << "四元式表：\n" << codeTable.dumpTable();
-    // cout << "按回车继续" << endl;
-    // system("read");
+
+    writeFile("out.txt", codeTable.dumpTable());
+
+    cout << "按回车继续" << endl;
+    system("read");
     return 0;
 }
