@@ -1,7 +1,7 @@
 /**
  * @Auther: 刘亦飞
  * @Date: 2022/5/6
- * @Discription: 类型定义
+ * @Discription: 类型定义与工具函数
  */
 #pragma once
 
