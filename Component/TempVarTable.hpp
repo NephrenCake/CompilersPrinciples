@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 临时变量表
  */
-#ifndef COMPILERPRINCIPLES_TEMPVARTABLE_HPP
-#define COMPILERPRINCIPLES_TEMPVARTABLE_HPP
+#pragma once
 
 #include "Utils.hpp"
 
@@ -26,5 +25,3 @@ public:
         return res + "]\n";
     }
 };
-
-#endif //COMPILERPRINCIPLES_TEMPVARTABLE_HPP

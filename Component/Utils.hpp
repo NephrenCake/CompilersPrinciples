@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 类型定义
  */
-#ifndef COMPILERPRINCIPLES_UTILS_HPP
-#define COMPILERPRINCIPLES_UTILS_HPP
+#pragma once
 
 #include <iostream>
 #include <unordered_map>
@@ -115,5 +114,3 @@ void writeFile(const string &filePath, const string &content) {
     ofs << content;
     ofs.close();
 }
-
-#endif //COMPILERPRINCIPLES_UTILS_HPP

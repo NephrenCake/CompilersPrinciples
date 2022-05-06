@@ -6,8 +6,8 @@ int main() {
 
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
-    CodeTable codeTable;
     TempVarTable tempVarTable;
+    CodeTable codeTable;
 
     cout << "\n开始编译~" << endl;
     SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable, &codeTable, &tempVarTable);

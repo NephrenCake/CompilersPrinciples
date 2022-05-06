@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 标识符表
  */
-#ifndef COMPILERPRINCIPLES_IDENTIFIERTABLE_HPP
-#define COMPILERPRINCIPLES_IDENTIFIERTABLE_HPP
+#pragma once
 
 #include "Identifier.hpp"
 
@@ -57,5 +56,3 @@ public:
         return table[name];
     }
 };
-
-#endif //COMPILERPRINCIPLES_IDENTIFIERTABLE_HPP

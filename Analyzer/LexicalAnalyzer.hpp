@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 词法分析
  */
-#ifndef COMPILERPRINCIPLES_LEXICALANALYZER_HPP
-#define COMPILERPRINCIPLES_LEXICALANALYZER_HPP
+#pragma once
 
 #include "../Component/IdentifierTable.hpp"
 
@@ -149,5 +148,3 @@ public:
         return true;
     }
 };
-
-#endif //COMPILERPRINCIPLES_LEXICALANALYZER_HPP

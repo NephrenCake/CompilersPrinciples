@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 语法+语义分析
  */
-#ifndef COMPILERPRINCIPLES_SYNTAXANALYZER_HPP
-#define COMPILERPRINCIPLES_SYNTAXANALYZER_HPP
+#pragma once
 
 #include "LexicalAnalyzer.hpp"
 #include "../Component/CodeTable.hpp"
@@ -282,5 +281,3 @@ public:
         lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
     }
 };
-
-#endif //COMPILERPRINCIPLES_SYNTAXANALYZER_HPP

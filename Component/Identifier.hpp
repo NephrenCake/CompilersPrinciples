@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 标识符、临时变量
  */
-#ifndef COMPILERPRINCIPLES_IDENTIFIER_HPP
-#define COMPILERPRINCIPLES_IDENTIFIER_HPP
+#pragma once
 
 #include "Utils.hpp"
 
@@ -77,5 +76,3 @@ public:
             return false;
     }
 };
-
-#endif //COMPILERPRINCIPLES_IDENTIFIER_HPP

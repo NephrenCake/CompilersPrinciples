@@ -3,8 +3,7 @@
  * @Date: 2022/5/6
  * @Discription: 四元式表
  */
-#ifndef COMPILERPRINCIPLES_CODETABLE_HPP
-#define COMPILERPRINCIPLES_CODETABLE_HPP
+#pragma once
 
 #include "Utils.hpp"
 
@@ -49,5 +48,3 @@ public:
         return res;
     }
 };
-
-#endif //COMPILERPRINCIPLES_CODETABLE_HPP
