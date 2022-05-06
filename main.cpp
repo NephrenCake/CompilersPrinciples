@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// ********************ÀàĞÍ¶¨Òå********************
+// ********************ç±»å‹å®šä¹‰********************
 #define WORD 100
 #define WORD_INT 101
 #define WORD_BEGIN 102
@@ -33,7 +33,7 @@ using namespace std;
 #define SYMBOL_ASSIGN 313
 #define IDENTIFIER 400
 
-// ±£Áô×Ö¼¯ºÏ£¬ÒÔ¼°µ½´Ê·¨ÀàĞÍÓ³Éä
+// ä¿ç•™å­—é›†åˆï¼Œä»¥åŠåˆ°è¯æ³•ç±»å‹æ˜ å°„
 const unordered_map<string, int> reserved_words = {{"int",   WORD_INT},
                                                    {"begin", WORD_BEGIN},
                                                    {"end",   WORD_END},
@@ -42,20 +42,20 @@ const unordered_map<string, int> reserved_words = {{"int",   WORD_INT},
                                                    {"then",  WORD_THEN},
                                                    {"while", WORD_WHILE},
                                                    {"do",    WORD_DO}};
-// ±£Áô·ûºÅ¼¯ºÏ£¬ÒÔ¼°µ½´Ê·¨ÀàĞÍÓ³Éä£¬¸½Ôù´Ê·¨·ÖÎö²¿·ÖµÄÎÄ×ÖÃèÊö
-const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBOL_ADD,       "¼Ó·¨ÔËËã·û"}},
-                                                                   {"*",  {SYMBOL_MUL,       "³Ë·¨ÔËËã·û"}},
-                                                                   {"<",  {SYMBOL_LT,        "¹ØÏµÔËËã·û"}},
-                                                                   {">",  {SYMBOL_GT,        "¹ØÏµÔËËã·û"}},
-                                                                   {"<=", {SYMBOL_LE,        "¹ØÏµÔËËã·û"}},
-                                                                   {">=", {SYMBOL_GE,        "¹ØÏµÔËËã·û"}},
-                                                                   {"!=", {SYMBOL_NE,        "¹ØÏµÔËËã·û"}},
-                                                                   {"==", {SYMBOL_EQ,        "¹ØÏµÔËËã·û"}},
-                                                                   {",",  {SYMBOL_COMMA,     "·Ö¸ô·û¶ººÅ"}},
-                                                                   {";",  {SYMBOL_SEMICOLON, "·Ö¸ô·û·ÖºÅ"}},
-                                                                   {"(",  {SYMBOL_LPAREN,    "×óÀ¨ºÅ"}},
-                                                                   {")",  {SYMBOL_RPAREN,    "ÓÒÀ¨ºÅ"}},
-                                                                   {"=",  {SYMBOL_ASSIGN,    "¸³ÖµºÅ"}}};
+// ä¿ç•™ç¬¦å·é›†åˆï¼Œä»¥åŠåˆ°è¯æ³•ç±»å‹æ˜ å°„ï¼Œé™„èµ è¯æ³•åˆ†æéƒ¨åˆ†çš„æ–‡å­—æè¿°
+const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBOL_ADD,       "åŠ æ³•è¿ç®—ç¬¦"}},
+                                                                   {"*",  {SYMBOL_MUL,       "ä¹˜æ³•è¿ç®—ç¬¦"}},
+                                                                   {"<",  {SYMBOL_LT,        "å…³ç³»è¿ç®—ç¬¦"}},
+                                                                   {">",  {SYMBOL_GT,        "å…³ç³»è¿ç®—ç¬¦"}},
+                                                                   {"<=", {SYMBOL_LE,        "å…³ç³»è¿ç®—ç¬¦"}},
+                                                                   {">=", {SYMBOL_GE,        "å…³ç³»è¿ç®—ç¬¦"}},
+                                                                   {"!=", {SYMBOL_NE,        "å…³ç³»è¿ç®—ç¬¦"}},
+                                                                   {"==", {SYMBOL_EQ,        "å…³ç³»è¿ç®—ç¬¦"}},
+                                                                   {",",  {SYMBOL_COMMA,     "åˆ†éš”ç¬¦é€—å·"}},
+                                                                   {";",  {SYMBOL_SEMICOLON, "åˆ†éš”ç¬¦åˆ†å·"}},
+                                                                   {"(",  {SYMBOL_LPAREN,    "å·¦æ‹¬å·"}},
+                                                                   {")",  {SYMBOL_RPAREN,    "å³æ‹¬å·"}},
+                                                                   {"=",  {SYMBOL_ASSIGN,    "èµ‹å€¼å·"}}};
 const unordered_set<char> legal_symbols = {'+', '*', '<', '>', '!', ',', ';', '(', ')', '='};
 const unordered_set<char> ignore_symbols = {' ', '\n', '\t'};
 
@@ -78,7 +78,7 @@ string getTypenameByID(int ID) {
     }
 }
 
-// ********************±êÊ¶·û±í********************
+// ********************æ ‡è¯†ç¬¦è¡¨********************
 class Identifier {
 public:
     string name, type, value;
@@ -197,7 +197,7 @@ public:
     }
 };
 
-// ********************ËÄÔªÊ½±í********************
+// ********************å››å…ƒå¼è¡¨********************
 class CodeTable {
 private:
     struct Quaternary {
@@ -239,7 +239,7 @@ public:
     }
 };
 
-// ********************ÁÙÊ±±äÁ¿±í********************
+// ********************ä¸´æ—¶å˜é‡è¡¨********************
 class TempVarTable {
 private:
     vector<string> table;
@@ -258,7 +258,7 @@ public:
     }
 };
 
-// ********************´Ê·¨·ÖÎö²¿·Ö********************
+// ********************è¯æ³•åˆ†æéƒ¨åˆ†********************
 class LexicalAnalyzer {
 private:
     int ptr{};
@@ -276,7 +276,7 @@ private:
         return legal_symbols.count(ch) != 0;
     }
 
-    static inline int start_type(char ch) {  // Ö¸³öÓÉ´ÊÊ××Ö·ûÍÆÀíµÃ³öµÄµ±Ç°´ÊµÄ¿ÉÄÜÀàĞÍ
+    static inline int start_type(char ch) {  // æŒ‡å‡ºç”±è¯é¦–å­—ç¬¦æ¨ç†å¾—å‡ºçš„å½“å‰è¯çš„å¯èƒ½ç±»å‹
         if (is_letter(ch)) return WORD;
         if (is_digit(ch)) return NUM;
         if (is_legal_symbol(ch)) return SYMBOL;
@@ -298,8 +298,8 @@ public:
     }
 
     /**
-     * ½âÎö´úÂëÖĞµÄ±êÊ¶·û£¬²¢Êä³öµ½±êÊ¶·û±í
-     * @param identifierTable ±êÊ¶·û±í
+     * è§£æä»£ç ä¸­çš„æ ‡è¯†ç¬¦ï¼Œå¹¶è¾“å‡ºåˆ°æ ‡è¯†ç¬¦è¡¨
+     * @param identifierTable æ ‡è¯†ç¬¦è¡¨
      */
     void analyzeIdentifier(IdentifierTable &identifierTable) {
         identifierTable.clearTable();
@@ -316,14 +316,14 @@ public:
     }
 
     /**
-     * °´Ë³Ğò»ñÈ¡ÏÂÒ»¸ö´Ê¡£Èô»ñÈ¡Ê§°Ü£¬²»»á¸Ä±ä´«ÈëµÄ±äÁ¿¡£
-     * @param res ´«ÈëÒıÓÃ£¬ÓÃÓÚ´«³öÏÂÒ»¸ö´Ê
-     * @param type ´«ÈëÒıÓÃ£¬ÓÃÓÚ´«³öÏÂÒ»¸ö´ÊµÄÀàĞÍ
-     * @return ±íÊ¾ÊÇ·ñÕıÈ·»ñÈ¡µ½ÏÂÒ»¸ö´Ê
+     * æŒ‰é¡ºåºè·å–ä¸‹ä¸€ä¸ªè¯ã€‚è‹¥è·å–å¤±è´¥ï¼Œä¸ä¼šæ”¹å˜ä¼ å…¥çš„å˜é‡ã€‚
+     * @param res ä¼ å…¥å¼•ç”¨ï¼Œç”¨äºä¼ å‡ºä¸‹ä¸€ä¸ªè¯
+     * @param type ä¼ å…¥å¼•ç”¨ï¼Œç”¨äºä¼ å‡ºä¸‹ä¸€ä¸ªè¯çš„ç±»å‹
+     * @return è¡¨ç¤ºæ˜¯å¦æ­£ç¡®è·å–åˆ°ä¸‹ä¸€ä¸ªè¯
      */
     bool getNextWord(string &res, int &type) {
         while (!ptr_arrive_end(ptr) && ignore_symbols.count(source[ptr]) != 0)
-            ptr++;  // ºöÂÔ¿ÉºöÂÔ×Ö·û£¬²¢ÇÒÖ¸ÕëÃ»µ½ÎÄÄ©
+            ptr++;  // å¿½ç•¥å¯å¿½ç•¥å­—ç¬¦ï¼Œå¹¶ä¸”æŒ‡é’ˆæ²¡åˆ°æ–‡æœ«
         if (ptr_arrive_end(ptr)) {
             if (source[ptr] != '#') {
                 cout << "[Warning]: no words any more!" << endl;
@@ -331,13 +331,13 @@ public:
             } else {
                 res = '#';
                 type = -1;
-                cout << "¡¾´Ê¡¿(#, #)" << endl;
-                cout << "´Ê·¨·ÖÎö½áÊø" << endl;
+                cout << "ã€è¯ã€‘(#, #)" << endl;
+                cout << "è¯æ³•åˆ†æç»“æŸ" << endl;
                 return true;
             }
         }
 
-        // Ã¶¾Ù³¤¶ÈÏòºóÆ´½Ó£¬²¢Êä³ö¶şÔªÊ½
+        // æšä¸¾é•¿åº¦å‘åæ‹¼æ¥ï¼Œå¹¶è¾“å‡ºäºŒå…ƒå¼
         int len = 0, lv1_type = start_type(source[ptr]), lv2_type = 0;
         string sub_word;
         switch (lv1_type) {
@@ -345,46 +345,46 @@ public:
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
-                } while (!is_reserved_words(sub_word) &&  // Èç¹û»¹²»ÊÇ¹Ø¼ü×Ö£¬ÔòĞèÒª¼ÌĞøÆ´ÏÂÒ»¸ö×Ö·û
-                         !ptr_arrive_end(ptr + len) &&  // ·ÀÔ½½ç
-                         is_letter(source[ptr + len]));  // ×Ö·ûºÏ·¨
+                } while (!is_reserved_words(sub_word) &&  // å¦‚æœè¿˜ä¸æ˜¯å…³é”®å­—ï¼Œåˆ™éœ€è¦ç»§ç»­æ‹¼ä¸‹ä¸€ä¸ªå­—ç¬¦
+                         !ptr_arrive_end(ptr + len) &&  // é˜²è¶Šç•Œ
+                         is_letter(source[ptr + len]));  // å­—ç¬¦åˆæ³•
                 if (!is_reserved_words(sub_word)) {
                     cout << "[Lexical Error]: Word at " << ptr << ", '" << sub_word <<
                          "' is not a reserved next_word! Will ignore it!" << endl;
                     ptr += len;
                     return false;
-                }  // ´¦ÀíÆ¥Åä½áÊøµ«·Ç·¨Çé¿ö
+                }  // å¤„ç†åŒ¹é…ç»“æŸä½†éæ³•æƒ…å†µ
                 lv2_type = reserved_words.find(sub_word)->second;
-                cout << "¡¾´Ê¡¿(±£Áô×Ö" << sub_word << ", " << sub_word << ")" << endl;
+                cout << "ã€è¯ã€‘(ä¿ç•™å­—" << sub_word << ", " << sub_word << ")" << endl;
                 break;
 
             case NUM:
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
-                } while (!ptr_arrive_end(ptr + len) &&  // ·ÀÔ½½ç
-                         is_digit(source[ptr + len]));  // ×Ö·ûºÏ·¨£¬¿ÉÒÔÆ´³É¸ü³¤µÄÊı×ÖĞòÁĞ
-                cout << "¡¾´Ê¡¿(³£Á¿, " << sub_word << ")" << endl;
+                } while (!ptr_arrive_end(ptr + len) &&  // é˜²è¶Šç•Œ
+                         is_digit(source[ptr + len]));  // å­—ç¬¦åˆæ³•ï¼Œå¯ä»¥æ‹¼æˆæ›´é•¿çš„æ•°å­—åºåˆ—
+                cout << "ã€è¯ã€‘(å¸¸é‡, " << sub_word << ")" << endl;
                 break;
 
             case SYMBOL:
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
-                } while (!ptr_arrive_end(ptr + len) &&  // ·ÀÔ½½ç
-                         source[ptr + len] == '=');  // ×Ö·ûºÏ·¨£¬¿¼ÂÇ "!=", ">=", "<=", "=="
+                } while (!ptr_arrive_end(ptr + len) &&  // é˜²è¶Šç•Œ
+                         source[ptr + len] == '=');  // å­—ç¬¦åˆæ³•ï¼Œè€ƒè™‘ "!=", ">=", "<=", "=="
                 lv2_type = reserved_symbols.find(sub_word)->second.first;
-                cout << "¡¾´Ê¡¿(" << reserved_symbols.find(sub_word)->second.second << ", " << sub_word << ")" << endl;
+                cout << "ã€è¯ã€‘(" << reserved_symbols.find(sub_word)->second.second << ", " << sub_word << ")" << endl;
                 break;
 
             case IDENTIFIER:
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
-                } while (!ptr_arrive_end(ptr + len) &&  // ·ÀÔ½½ç
+                } while (!ptr_arrive_end(ptr + len) &&  // é˜²è¶Šç•Œ
                          (is_letter(source[ptr + len]) ||
-                          is_digit(source[ptr + len])));  // ±äÁ¿ÃûÓÉ$¿ªÍ·£¬²¢ÓÉ×ÖÄ¸»òÊı×Ö×é³É
-                cout << "¡¾´Ê¡¿(±êÊ¶·û, " << sub_word << ")" << endl;
+                          is_digit(source[ptr + len])));  // å˜é‡åç”±$å¼€å¤´ï¼Œå¹¶ç”±å­—æ¯æˆ–æ•°å­—ç»„æˆ
+                cout << "ã€è¯ã€‘(æ ‡è¯†ç¬¦, " << sub_word << ")" << endl;
                 break;
 
             default:  // illegal
@@ -400,26 +400,26 @@ public:
     }
 };
 
-// ********************Óï·¨ÓïÒå·ÖÎö²¿·Ö********************
+// ********************è¯­æ³•è¯­ä¹‰åˆ†æéƒ¨åˆ†********************
 /**
- * <³ÌĞò> ¡ú <±äÁ¿ËµÃ÷²¿·Ö>;<Óï¾ä²¿·Ö>
- * <±äÁ¿ËµÃ÷²¿·Ö> ¡ú int<±êÊ¶·ûÁĞ±í>
- * <±êÊ¶·ûÁĞ±í> ¡ú <±êÊ¶·û><±êÊ¶·ûÁĞ±íprime>
- * <±êÊ¶·ûÁĞ±íprime> ¡ú ,<±êÊ¶·û><±êÊ¶·ûÁĞ±íprime>|¦Å
- * <Óï¾ä²¿·Ö> ¡ú <Óï¾ä>;<Óï¾ä²¿·Öprime>
- * <Óï¾ä²¿·Öprime> ¡ú <Óï¾ä>;<Óï¾ä²¿·Öprime>|¦Å
- * <Óï¾ä> ¡ú <¸³ÖµÓï¾ä>|<Ìõ¼şÓï¾ä>|<Ñ­»·Óï¾ä>
- * <¸³ÖµÓï¾ä> ¡ú <±êÊ¶·û>=<±í´ïÊ½>
- * <Ìõ¼şÓï¾ä> ¡ú if £¨<Ìõ¼ş>£© then <Ç¶Ì×Óï¾ä>; else <Ç¶Ì×Óï¾ä>
- * <Ñ­»·Óï¾ä> ¡ú while £¨<Ìõ¼ş>£© do <Ç¶Ì×Óï¾ä>
- * <±í´ïÊ½> ¡ú <Ïî><±í´ïÊ½prime>
- * <±í´ïÊ½prime> ¡ú +<Ïî><±í´ïÊ½prime>|¦Å
- * <Ïî> ¡ú <Òò×Ó><Ïîprime>
- * <Ïîprime> ¡ú *<Òò×Ó><Ïîprime>|¦Å
- * <Òò×Ó> ¡ú <±êÊ¶·û>|<³£Á¿>|(<±í´ïÊ½>)
- * <Ìõ¼ş> ¡ú <±í´ïÊ½><¹ØÏµÔËËã·û><±í´ïÊ½>
- * <Ç¶Ì×Óï¾ä> ¡ú <Óï¾ä>|<¸´ºÏÓï¾ä>
- * <¸´ºÏÓï¾ä> ¡ú begin <Óï¾ä²¿·Ö> end
+ * <ç¨‹åº> â†’ <å˜é‡è¯´æ˜éƒ¨åˆ†>;<è¯­å¥éƒ¨åˆ†>
+ * <å˜é‡è¯´æ˜éƒ¨åˆ†> â†’ int<æ ‡è¯†ç¬¦åˆ—è¡¨>
+ * <æ ‡è¯†ç¬¦åˆ—è¡¨> â†’ <æ ‡è¯†ç¬¦><æ ‡è¯†ç¬¦åˆ—è¡¨prime>
+ * <æ ‡è¯†ç¬¦åˆ—è¡¨prime> â†’ ,<æ ‡è¯†ç¬¦><æ ‡è¯†ç¬¦åˆ—è¡¨prime>|Îµ
+ * <è¯­å¥éƒ¨åˆ†> â†’ <è¯­å¥>;<è¯­å¥éƒ¨åˆ†prime>
+ * <è¯­å¥éƒ¨åˆ†prime> â†’ <è¯­å¥>;<è¯­å¥éƒ¨åˆ†prime>|Îµ
+ * <è¯­å¥> â†’ <èµ‹å€¼è¯­å¥>|<æ¡ä»¶è¯­å¥>|<å¾ªç¯è¯­å¥>
+ * <èµ‹å€¼è¯­å¥> â†’ <æ ‡è¯†ç¬¦>=<è¡¨è¾¾å¼>
+ * <æ¡ä»¶è¯­å¥> â†’ if ï¼ˆ<æ¡ä»¶>ï¼‰ then <åµŒå¥—è¯­å¥>; else <åµŒå¥—è¯­å¥>
+ * <å¾ªç¯è¯­å¥> â†’ while ï¼ˆ<æ¡ä»¶>ï¼‰ do <åµŒå¥—è¯­å¥>
+ * <è¡¨è¾¾å¼> â†’ <é¡¹><è¡¨è¾¾å¼prime>
+ * <è¡¨è¾¾å¼prime> â†’ +<é¡¹><è¡¨è¾¾å¼prime>|Îµ
+ * <é¡¹> â†’ <å› å­><é¡¹prime>
+ * <é¡¹prime> â†’ *<å› å­><é¡¹prime>|Îµ
+ * <å› å­> â†’ <æ ‡è¯†ç¬¦>|<å¸¸é‡>|(<è¡¨è¾¾å¼>)
+ * <æ¡ä»¶> â†’ <è¡¨è¾¾å¼><å…³ç³»è¿ç®—ç¬¦><è¡¨è¾¾å¼>
+ * <åµŒå¥—è¯­å¥> â†’ <è¯­å¥>|<å¤åˆè¯­å¥>
+ * <å¤åˆè¯­å¥> â†’ begin <è¯­å¥éƒ¨åˆ†> end
  */
 class SyntaxAnalyzer {
 private:
@@ -428,7 +428,7 @@ private:
     CodeTable *codeTable;
     TempVarTable *tempVarTable;
     bool have_error = false;
-    pair<string, int> next_word;  // ÏÂÒ»¸öµÈ´ıÆ¥ÅäµÄ´Ê <´Ê, ÀàĞÍ>
+    pair<string, int> next_word;  // ä¸‹ä¸€ä¸ªç­‰å¾…åŒ¹é…çš„è¯ <è¯, ç±»å‹>
 
 public:
     explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer,
@@ -443,22 +443,22 @@ public:
     }
 
     void parseProgram() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<³ÌĞò> -> <±äÁ¿ËµÃ÷²¿·Ö>;<Óï¾ä²¿·Ö>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<ç¨‹åº> -> <å˜é‡è¯´æ˜éƒ¨åˆ†>;<è¯­å¥éƒ¨åˆ†>" << endl;
         parseExplainVars();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSection();
         if (have_error) cout << "[Syntax error]: Parse program failed!" << endl;
-        cout << "Óï·¨·ÖÎö½áÊø" << endl;
+        cout << "è¯­æ³•åˆ†æç»“æŸ" << endl;
     }
 
     void parseExplainVars() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<±äÁ¿ËµÃ÷²¿·Ö> ¡ú int<±êÊ¶·ûÁĞ±í>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<å˜é‡è¯´æ˜éƒ¨åˆ†> â†’ int<æ ‡è¯†ç¬¦åˆ—è¡¨>" << endl;
         match_word(WORD_INT);
         parseIdentifierList(WORD_INT);
     }
 
     void parseIdentifierList(int identifierType) {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<±êÊ¶·ûÁĞ±í> ¡ú <±êÊ¶·û><±êÊ¶·ûÁĞ±íprime>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<æ ‡è¯†ç¬¦åˆ—è¡¨> â†’ <æ ‡è¯†ç¬¦><æ ‡è¯†ç¬¦åˆ—è¡¨prime>" << endl;
         if (next_word.second == IDENTIFIER) {
             identifierTable->addIdentifier(next_word.first);
             identifierTable->updateIdentifierType(next_word.first, getTypenameByID(identifierType));
@@ -468,7 +468,7 @@ public:
     }
 
     void parseIdentifierListPrime(int identifierType) {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<±êÊ¶·ûÁĞ±íprime> ¡ú ,<±êÊ¶·û><±êÊ¶·ûÁĞ±íprime>|¦Å" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<æ ‡è¯†ç¬¦åˆ—è¡¨prime> â†’ ,<æ ‡è¯†ç¬¦><æ ‡è¯†ç¬¦åˆ—è¡¨prime>|Îµ" << endl;
         if (next_word.second != SYMBOL_COMMA)
             return;
         match_word(SYMBOL_COMMA);
@@ -481,14 +481,14 @@ public:
     }
 
     void parseStatementSection() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Óï¾ä²¿·Ö> ¡ú <Óï¾ä>;<Óï¾ä²¿·Öprime>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<è¯­å¥éƒ¨åˆ†> â†’ <è¯­å¥>;<è¯­å¥éƒ¨åˆ†prime>" << endl;
         parseStatement();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSectionPrime();
     }
 
     void parseStatementSectionPrime() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Óï¾ä²¿·Öprime> ¡ú <Óï¾ä>;<Óï¾ä²¿·Öprime>|¦Å" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<è¯­å¥éƒ¨åˆ†prime> â†’ <è¯­å¥>;<è¯­å¥éƒ¨åˆ†prime>|Îµ" << endl;
         if (next_word.second != IDENTIFIER && next_word.second != WORD_IF && next_word.second != WORD_WHILE)
             return;
         parseStatement();
@@ -497,21 +497,21 @@ public:
     }
 
     void parseStatement() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Óï¾ä> ¡ú <¸³ÖµÓï¾ä>|<Ìõ¼şÓï¾ä>|<Ñ­»·Óï¾ä>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<è¯­å¥> â†’ <èµ‹å€¼è¯­å¥>|<æ¡ä»¶è¯­å¥>|<å¾ªç¯è¯­å¥>" << endl;
         if (next_word.second == IDENTIFIER) parseAssignStatement();
         else if (next_word.second == WORD_IF) parseIfStatement();
         else if (next_word.second == WORD_WHILE) parseWhileStatement();
     }
 
     void parseAssignStatement() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<¸³ÖµÓï¾ä> ¡ú <±êÊ¶·û>=<±í´ïÊ½>" << endl;
-        // ÓÉÓÚÖ»ÓĞ next_word.second == IDENTIFIER ²Å»áµ÷ÓÃ¸Ãº¯Êı£¬¹Ê²»ĞèÒªÔÙ´ÎÅĞ¶Ï
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<èµ‹å€¼è¯­å¥> â†’ <æ ‡è¯†ç¬¦>=<è¡¨è¾¾å¼>" << endl;
+        // ç”±äºåªæœ‰ next_word.second == IDENTIFIER æ‰ä¼šè°ƒç”¨è¯¥å‡½æ•°ï¼Œæ•…ä¸éœ€è¦å†æ¬¡åˆ¤æ–­
         string identifierName = next_word.first;
         string identifierType = identifierTable->getIdentifier(next_word.first).type;
         match_word(IDENTIFIER);
         match_word(SYMBOL_ASSIGN);
         Identifier E = parseExpression();
-        // ¸³Öµ²¢²úÉúËÄÔªÊ½£¬ÈôÀàĞÍ²»·ûÔò±¨´í
+        // èµ‹å€¼å¹¶äº§ç”Ÿå››å…ƒå¼ï¼Œè‹¥ç±»å‹ä¸ç¬¦åˆ™æŠ¥é”™
         if (E.type == identifierType) {
             codeTable->addQuaternary("=", E.name, "null", identifierName);
             identifierTable->updateIdentifierValue(identifierName, E.value);
@@ -522,7 +522,7 @@ public:
     }
 
     void parseIfStatement() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Ìõ¼şÓï¾ä> ¡ú if £¨<Ìõ¼ş>£© then <Ç¶Ì×Óï¾ä>; else <Ç¶Ì×Óï¾ä>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<æ¡ä»¶è¯­å¥> â†’ if ï¼ˆ<æ¡ä»¶>ï¼‰ then <åµŒå¥—è¯­å¥>; else <åµŒå¥—è¯­å¥>" << endl;
         match_word(WORD_IF);
         match_word(SYMBOL_LPAREN);
         Identifier E = parseCondition();
@@ -530,31 +530,31 @@ public:
         match_word(WORD_THEN);
 
         codeTable->addQuaternary("jnz", E.name, "null", to_string(codeTable->NXQ() + 2));
-        // ¼Ù³ö¿Ú
+        // å‡å‡ºå£
         int falseExitIndex = codeTable->NXQ();
         codeTable->addQuaternary("j", "null", "null", "0");
 
         parseNestedStatement();
         int exitIndex = codeTable->NXQ();
         codeTable->addQuaternary("j", "null", "null", "0");
-        // »ØÌî¼Ù³ö¿Ú
+        // å›å¡«å‡å‡ºå£
         codeTable->updateResultByIndex(falseExitIndex, to_string(codeTable->NXQ()));
         match_word(SYMBOL_SEMICOLON);
         match_word(WORD_ELSE);
         parseNestedStatement();
-        // »ØÌîÕæ³ö¿Ú
+        // å›å¡«çœŸå‡ºå£
         codeTable->updateResultByIndex(exitIndex, to_string(codeTable->NXQ()));
     }
 
     void parseWhileStatement() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Ñ­»·Óï¾ä> ¡ú while £¨<Ìõ¼ş>£© do <Ç¶Ì×Óï¾ä>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<å¾ªç¯è¯­å¥> â†’ while ï¼ˆ<æ¡ä»¶>ï¼‰ do <åµŒå¥—è¯­å¥>" << endl;
         match_word(WORD_WHILE);
         match_word(SYMBOL_LPAREN);
 
         int nextIndex = codeTable->NXQ();
         Identifier E = parseCondition();
         codeTable->addQuaternary("jnz", E.name, "null", to_string(codeTable->NXQ() + 2));
-        // ¼Ù³ö¿Ú£¬ÄªÍü»ØÌî
+        // å‡å‡ºå£ï¼Œè«å¿˜å›å¡«
         int falseExitIndex = codeTable->NXQ();
         codeTable->addQuaternary("j", "null", "null", "0");
 
@@ -567,45 +567,45 @@ public:
     }
 
     Identifier parseExpression() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<±í´ïÊ½> ¡ú <Ïî><±í´ïÊ½prime>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<è¡¨è¾¾å¼> â†’ <é¡¹><è¡¨è¾¾å¼prime>" << endl;
         Identifier E = parseItem();
         return parseExpressionPrime(E);
     }
 
     Identifier parseExpressionPrime(const Identifier &E1) {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<±í´ïÊ½prime> ¡ú +<Ïî><±í´ïÊ½prime>|¦Å" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<è¡¨è¾¾å¼prime> â†’ +<é¡¹><è¡¨è¾¾å¼prime>|Îµ" << endl;
         if (next_word.second != SYMBOL_ADD)
             return E1;
 
         match_word(SYMBOL_ADD);
         Identifier E2 = parseItem();
         Identifier E3 = E2 + E1;
-        E3.name = tempVarTable->getNewTempVarName();  // E3ÊÇÉêÇëµÄÒ»¸öĞÂÁÙÊ±±äÁ¿
+        E3.name = tempVarTable->getNewTempVarName();  // E3æ˜¯ç”³è¯·çš„ä¸€ä¸ªæ–°ä¸´æ—¶å˜é‡
         codeTable->addQuaternary("+", E1.name, E2.name, E3.name);
         return parseExpressionPrime(E3);
     }
 
     Identifier parseItem() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Ïî> ¡ú <Òò×Ó><Ïîprime>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<é¡¹> â†’ <å› å­><é¡¹prime>" << endl;
         Identifier E = parseFactor();
         return parseItemPrime(E);
     }
 
     Identifier parseItemPrime(const Identifier &E1) {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Ïîprime> ¡ú *<Òò×Ó><Ïîprime>|¦Å" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<é¡¹prime> â†’ *<å› å­><é¡¹prime>|Îµ" << endl;
         if (next_word.second != SYMBOL_MUL)
             return E1;
 
         match_word(SYMBOL_MUL);
         Identifier E2 = parseFactor();
         Identifier E3 = E2 * E1;
-        E3.name = tempVarTable->getNewTempVarName();  // E3ÊÇÉêÇëµÄÒ»¸öĞÂÁÙÊ±±äÁ¿
+        E3.name = tempVarTable->getNewTempVarName();  // E3æ˜¯ç”³è¯·çš„ä¸€ä¸ªæ–°ä¸´æ—¶å˜é‡
         codeTable->addQuaternary("*", E1.name, E2.name, E3.name);
         return parseItemPrime(E3);
     }
 
     Identifier parseFactor() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Òò×Ó> ¡ú <±êÊ¶·û>|<³£Á¿>|(<±í´ïÊ½>)" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<å› å­> â†’ <æ ‡è¯†ç¬¦>|<å¸¸é‡>|(<è¡¨è¾¾å¼>)" << endl;
 
         Identifier E;
         if (next_word.second == IDENTIFIER) {
@@ -623,7 +623,7 @@ public:
     }
 
     Identifier parseCondition() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Ìõ¼ş> ¡ú <±í´ïÊ½><¹ØÏµÔËËã·û><±í´ïÊ½>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<æ¡ä»¶> â†’ <è¡¨è¾¾å¼><å…³ç³»è¿ç®—ç¬¦><è¡¨è¾¾å¼>" << endl;
         string op = getTypenameByID(next_word.second), temp;
 
         Identifier E1 = parseExpression();
@@ -650,7 +650,7 @@ public:
     }
 
     void parseNestedStatement() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<Ç¶Ì×Óï¾ä> ¡ú <Óï¾ä>|<¸´ºÏÓï¾ä>" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<åµŒå¥—è¯­å¥> â†’ <è¯­å¥>|<å¤åˆè¯­å¥>" << endl;
         if (next_word.second == WORD_BEGIN)
             parseCompoundStatement();
         else
@@ -658,7 +658,7 @@ public:
     }
 
     void parseCompoundStatement() {
-        cout << "¡¾Óï¡¿ÍÆµ¼£º<¸´ºÏÓï¾ä> ¡ú begin <Óï¾ä²¿·Ö> end" << endl;
+        cout << "ã€è¯­ã€‘æ¨å¯¼ï¼š<å¤åˆè¯­å¥> â†’ begin <è¯­å¥éƒ¨åˆ†> end" << endl;
         match_word(WORD_BEGIN);
         parseStatementSection();
         match_word(WORD_END);
@@ -715,13 +715,13 @@ int main() {
     SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable, &codeTable, &tempVarTable);
     syntaxAnalyzer.parseProgram();
 
-    cout << "\n±êÊ¶·û±í£º\n" << identifierTable.dumpTable();
-    cout << "ÁÙÊ±±äÁ¿±í£º\n" << tempVarTable.dumpTable();
-    cout << "ËÄÔªÊ½±í£º\n" << codeTable.dumpTable();
+    cout << "\næ ‡è¯†ç¬¦è¡¨ï¼š\n" << identifierTable.dumpTable();
+    cout << "ä¸´æ—¶å˜é‡è¡¨ï¼š\n" << tempVarTable.dumpTable();
+    cout << "å››å…ƒå¼è¡¨ï¼š\n" << codeTable.dumpTable();
 
     writeFile("out.txt", codeTable.dumpTable());
 
-    cout << "°´»Ø³µ¼ÌĞø" << endl;
+    cout << "æŒ‰å›è½¦ç»§ç»­" << endl;
     system("read");
     return 0;
 }
