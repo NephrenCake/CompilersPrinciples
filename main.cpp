@@ -31,14 +31,14 @@ using namespace std;
 #define IDENTIFIER 400
 
 // 保留字集合，以及到词法类型映射
-const unordered_map<string, int> reserved_words = {{"int", WORD_INT},
+const unordered_map<string, int> reserved_words = {{"int",   WORD_INT},
                                                    {"begin", WORD_BEGIN},
-                                                   {"end", WORD_END},
-                                                   {"if", WORD_IF},
-                                                   {"else", WORD_ELSE},
-                                                   {"then", WORD_THEN},
+                                                   {"end",   WORD_END},
+                                                   {"if",    WORD_IF},
+                                                   {"else",  WORD_ELSE},
+                                                   {"then",  WORD_THEN},
                                                    {"while", WORD_WHILE},
-                                                   {"do", WORD_DO}};
+                                                   {"do",    WORD_DO}};
 // 保留符号集合，以及到词法类型映射，附赠词法分析部分的文字描述
 const unordered_map<string, pair<int, string>> reserved_symbols = {{"+",  {SYMBOL_ADD,       "加法运算符"}},
                                                                    {"*",  {SYMBOL_MUL,       "乘法运算符"}},
@@ -63,21 +63,45 @@ string getTypenameByID(int ID) {
                 if (i.second == ID)
                     return i.first;
         case 2:
-            return "常量";
+            return "Constant";
         case 3:
             for (auto &i: reserved_symbols)
                 if (i.second.first == ID)
-                    return i.first;
+                    return i.second.second;
         case 4:
-            return "IDENTIFIER";
+            return "Identifier";
         default:
-            return "Unknown";
+            return "UnknownType";
     }
 }
 
 // ********************标识符表********************
-struct Identifier {
+class Identifier {
+public:
     string name, type, value;
+
+    static inline bool isAbleToCal(const Identifier &i1, const Identifier &i2) {
+        return (i1.type == getTypenameByID(WORD_INT) || i1.type == getTypenameByID(NUM)) &&
+               (i2.type == getTypenameByID(WORD_INT) || i2.type == getTypenameByID(NUM));
+    }
+
+    Identifier operator+(const Identifier &i2) {
+        if (isAbleToCal(*this, i2))
+            return {"", this->type, to_string(stoi(this->value) + stoi(i2.value))};
+        else {
+            cout << "[Semantic error]: Can only use operator+ on two INT" << endl;
+            return {"", "", ""};
+        }
+    }
+
+    Identifier operator*(const Identifier &i2) {
+        if (isAbleToCal(*this, i2))
+            return {"", this->type, to_string(stoi(this->value) * stoi(i2.value))};
+        else {
+            cout << "[Semantic error]: Can only use operator* on two INT" << endl;
+            return {"", "", ""};
+        }
+    }
 };
 
 class IdentifierTable {
@@ -115,11 +139,78 @@ public:
         return true;
     }
 
-    bool updateIdentifierValue(const string &name, int value) {
+    bool updateIdentifierValue(const string &name, const string &value) {
         if (!existIdentifier(name))
             return false;
-        table[name].value = to_string(value);
+        table[name].value = value;
         return true;
+    }
+
+    Identifier getIdentifier(const string &name) {
+        if (!existIdentifier(name))
+            return {"", "", ""};
+        return table[name];
+    }
+};
+
+// ********************四元式表********************
+class CodeTable {
+private:
+    struct Quaternary {
+        string op, arg1, arg2, result;
+    };
+
+    vector<Quaternary> quaternaries;
+
+public:
+    bool addQuaternary(const string &op, const string &arg1, const string &arg2, const string &result) {
+        quaternaries.push_back({op, arg1, arg2, result});
+        cout << "(" + op + ", " + arg1 + ", " + arg2 + ", " + result + ")" << endl;
+        return true;
+    }
+
+    inline int NXQ() {
+        return (int) quaternaries.size();
+    }
+
+    bool updateResultByIndex(int idx, const string &result) {
+        if (idx < 0 || idx >= quaternaries.size())
+            return false;
+        quaternaries[idx].result = result;
+        return true;
+    }
+
+    void clearTable() {
+        quaternaries.clear();
+    }
+
+    string dumpTable() {
+        string res;
+        for (int i = 0; i < quaternaries.size(); i++) {
+            auto &item = quaternaries[i];
+            res += "(" + to_string(i) + ") ("
+                    + item.op + ", " + item.arg1 + ", " + item.arg2 + ", " + item.result + ")\n";
+        }
+        return res;
+    }
+};
+
+// ********************临时变量表********************
+class TempVarTable {
+private:
+    vector<string> table;
+public:
+    string getNewTempVarName() {
+        string name = "T" + to_string(table.size() + 1);
+        table.push_back(name);
+        return name;
+    }
+
+    string dumpTable() {
+        string res = "[";
+        for (auto &item: table)
+            res += item + ", ";
+        return res + "]\n";
     }
 };
 
@@ -264,49 +355,6 @@ public:
     }
 };
 
-
-
-// ********************四元式表********************
-class CodeTable {
-private:
-    struct Quaternary {
-        string op, arg1, arg2, result;
-    };
-
-    vector<Quaternary> quaternaries;
-
-public:
-    bool addQuaternary(const string &op, const string &arg1, const string &arg2, const string &result) {
-        quaternaries.push_back({op, arg1, arg2, result});
-        return true;
-    }
-
-    inline int NXQ() {
-        return (int) quaternaries.size();
-    }
-
-    bool updateResultByIndex(int idx, const string &result) {
-        if (idx < 0 || idx >= quaternaries.size())
-            return false;
-        quaternaries[idx].result = result;
-        return true;
-    }
-
-    void clearTable() {
-        quaternaries.clear();
-    }
-
-    string dumpTable() {
-        string res;
-        for (auto &item: quaternaries)
-            res += "op: " + item.op + "  " +
-                   "arg1: " + item.arg1 + "  " +
-                   "arg2: " + item.arg2 + "  " +
-                   "result: " + item.result + "\n";
-        return res;
-    }
-};
-
 // ********************语法语义分析部分********************
 /**
  * <程序> → <变量说明部分>;<语句部分>
@@ -333,14 +381,19 @@ private:
     LexicalAnalyzer *lexicalAnalyzer;
     IdentifierTable *identifierTable;
     CodeTable *codeTable;
+    TempVarTable *tempVarTable;
     bool have_error = false;
     pair<string, int> next_word;  // 下一个等待匹配的词 <词, 类型>
 
 public:
-    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer, IdentifierTable *identifierTable, CodeTable *codeTable) {
+    explicit SyntaxAnalyzer(LexicalAnalyzer *lexicalAnalyzer,
+                            IdentifierTable *identifierTable,
+                            CodeTable *codeTable,
+                            TempVarTable *tempVarTable) {
         this->lexicalAnalyzer = lexicalAnalyzer;
         this->identifierTable = identifierTable;
         this->codeTable = codeTable;
+        this->tempVarTable = tempVarTable;
         this->lexicalAnalyzer->getNextWord(next_word.first, next_word.second);
     }
 
@@ -407,9 +460,20 @@ public:
 
     void parseAssignStatement() {
         cout << "【语】推导：<赋值语句> → <标识符>=<表达式>" << endl;
+        // 由于只有 next_word.second == IDENTIFIER 才会调用该函数，故不需要再次判断
+        string identifierName = next_word.first;
+        string identifierType = identifierTable->getIdentifier(next_word.first).type;
         match_word(IDENTIFIER);
         match_word(SYMBOL_ASSIGN);
-        parseExpression();
+        Identifier E = parseExpression();
+        // 赋值并产生四元式，若类型不符则报错
+        if (E.type == identifierType) {
+            codeTable->addQuaternary("=", E.name, "null", identifierName);
+            identifierTable->updateIdentifierValue(identifierName, E.value);
+        } else
+            cout << "[Semantic error]: When assigning a value to " << identifierName
+                 << ". Expect type '" << identifierType
+                 << "', but got '" << E.type << "'" << endl;
     }
 
     void parseIfStatement() {
@@ -435,47 +499,60 @@ public:
         parseNestedStatement();
     }
 
-    void parseExpression() {
+    Identifier parseExpression() {
         cout << "【语】推导：<表达式> → <项><表达式prime>" << endl;
-        parseItem();
-        parseExpressionPrime();
+        Identifier E = parseItem();
+        return parseExpressionPrime(E);
     }
 
-    void parseExpressionPrime() {
+    Identifier parseExpressionPrime(const Identifier &E1) {
         cout << "【语】推导：<表达式prime> → +<项><表达式prime>|ε" << endl;
         if (next_word.second != SYMBOL_ADD)
-            return;
+            return E1;
+
         match_word(SYMBOL_ADD);
-        parseItem();
-        parseExpressionPrime();
+        Identifier E2 = parseItem();
+        Identifier E3 = E2 + E1;
+        E3.name = tempVarTable->getNewTempVarName();  // E3是申请的一个新临时变量
+        codeTable->addQuaternary("+", E1.name, E2.name, E3.name);
+        return parseExpressionPrime(E3);
     }
 
-    void parseItem() {
+    Identifier parseItem() {
         cout << "【语】推导：<项> → <因子><项prime>" << endl;
-        parseFactor();
-        parseItemPrime();
+        Identifier E = parseFactor();
+        return parseItemPrime(E);
     }
 
-    void parseItemPrime() {
+    Identifier parseItemPrime(const Identifier &E1) {
         cout << "【语】推导：<项prime> → *<因子><项prime>|ε" << endl;
         if (next_word.second != SYMBOL_MUL)
-            return;
+            return E1;
+
         match_word(SYMBOL_MUL);
-        parseFactor();
-        parseItemPrime();
+        Identifier E2 = parseFactor();
+        Identifier E3 = E2 * E1;
+        E3.name = tempVarTable->getNewTempVarName();  // E3是申请的一个新临时变量
+        codeTable->addQuaternary("*", E1.name, E2.name, E3.name);
+        return parseItemPrime(E3);
     }
 
-    void parseFactor() {
+    Identifier parseFactor() {
         cout << "【语】推导：<因子> → <标识符>|<常量>|(<表达式>)" << endl;
-        if (next_word.second == IDENTIFIER)
+
+        Identifier E;
+        if (next_word.second == IDENTIFIER) {
+            E = identifierTable->getIdentifier(next_word.first);
             match_word(IDENTIFIER);
-        else if (next_word.second == NUM)
+        } else if (next_word.second == NUM) {
+            E = {next_word.first, getTypenameByID(WORD_INT), next_word.first};
             match_word(NUM);
-        else {
+        } else {
             match_word(SYMBOL_LPAREN);
-            parseExpression();
+            E = parseExpression();
             match_word(SYMBOL_RPAREN);
         }
+        return E;
     }
 
     void parseCondition() {
@@ -537,11 +614,14 @@ int main() {
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
     CodeTable codeTable;
+    TempVarTable tempVarTable;
 
-    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable, &codeTable);
+    SyntaxAnalyzer syntaxAnalyzer(&lexicalAnalyzer, &identifierTable, &codeTable, &tempVarTable);
     syntaxAnalyzer.parseProgram();
 
-    cout << "标识符表：\n" << identifierTable.dumpTable() << endl;
+    cout << "\n标识符表：\n" << identifierTable.dumpTable();
+    cout << "临时变量表：\n" << tempVarTable.dumpTable();
+    cout << "四元式表：\n" << codeTable.dumpTable();
     // cout << "按回车继续" << endl;
     // system("read");
     return 0;
