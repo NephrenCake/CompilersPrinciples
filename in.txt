@@ -1,12 +1,1 @@
-int$v,$c;
-$v=41;
-$c=15;
-$c=$v+4*6+($v*3)*$c+940*($v*6);
-if($v*89<$v)
-then$v=$c*479;
-else
-    begin$c=$c+85;
-    $c=$c+734;
-    end;
-while($c*6>$v)
-do$v=$v+9;
+int$qutk;$qutk=9;$qutk=($qutk*652)*($qutk+181)*$qutk; if($qutk+1<=$qutk)thenbegin$qutk=$qutk+900;$qutk=$qutk*2;end;elsebegin$qutk=$qutk+80;$qutk=$qutk*3;end;while($qutk*51<$qutk*911)do$qutk=$qutk+3;

@@ -1,9 +1,12 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
 // ********************类型定义********************
-// 四个一级分类（保留字，常数，符号，标识符）；保留字、符号有二级分类。
 #define WORD 100
 #define WORD_INT 101
 #define WORD_BEGIN 102
@@ -67,7 +70,7 @@ string getTypenameByID(int ID) {
         case 3:
             for (auto &i: reserved_symbols)
                 if (i.second.first == ID)
-                    return i.second.second;
+                    return i.first;
         case 4:
             return "Identifier";
         default:
@@ -702,6 +705,7 @@ void writeFile(const string &filePath, const string &content) {
 
 int main() {
     string source = readFile("in.txt") + "#";
+    cout << source << endl;
 
     LexicalAnalyzer lexicalAnalyzer(source);
     IdentifierTable identifierTable;
