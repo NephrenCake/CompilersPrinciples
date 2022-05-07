@@ -21,58 +21,50 @@ public:
     }
 
     Identifier operator+(const Identifier &i2) {
-        if (isAbleToCal(*this, i2))
-            return {"", this->type, to_string(stoi(this->value) + stoi(i2.value))};
-        else
+        if (!isAbleToCal(*this, i2))
             return {"", "", ""};
+        return {"", this->type, to_string(stoi(this->value) + stoi(i2.value))};
     }
 
     Identifier operator*(const Identifier &i2) {
-        if (isAbleToCal(*this, i2))
-            return {"", this->type, to_string(stoi(this->value) * stoi(i2.value))};
-        else
+        if (!isAbleToCal(*this, i2))
             return {"", "", ""};
+        return {"", this->type, to_string(stoi(this->value) * stoi(i2.value))};
     }
 
     bool operator==(const Identifier &i2) const {
-        if (isAbleToCal(*this, i2))
-            return stoi(this->value) == stoi(i2.value);
-        else
+        if (!isAbleToCal(*this, i2))
             return false;
+        return stoi(this->value) == stoi(i2.value);
     }
 
     bool operator!=(const Identifier &i2) const {
-        if (isAbleToCal(*this, i2))
-            return stoi(this->value) != stoi(i2.value);
-        else
+        if (!isAbleToCal(*this, i2))
             return false;
+        return stoi(this->value) != stoi(i2.value);
     }
 
     bool operator<(const Identifier &i2) const {
-        if (isAbleToCal(*this, i2))
-            return stoi(this->value) < stoi(i2.value);
-        else
+        if (!isAbleToCal(*this, i2))
             return false;
+        return stoi(this->value) < stoi(i2.value);
     }
 
     bool operator>(const Identifier &i2) const {
-        if (isAbleToCal(*this, i2))
-            return stoi(this->value) > stoi(i2.value);
-        else
+        if (!isAbleToCal(*this, i2))
             return false;
+        return stoi(this->value) > stoi(i2.value);
     }
 
     bool operator<=(const Identifier &i2) const {
-        if (isAbleToCal(*this, i2))
-            return stoi(this->value) <= stoi(i2.value);
-        else
+        if (!isAbleToCal(*this, i2))
             return false;
+        return stoi(this->value) <= stoi(i2.value);
     }
 
     bool operator>=(const Identifier &i2) const {
-        if (isAbleToCal(*this, i2))
-            return stoi(this->value) >= stoi(i2.value);
-        else
+        if (!isAbleToCal(*this, i2))
             return false;
+        return stoi(this->value) >= stoi(i2.value);
     }
 };

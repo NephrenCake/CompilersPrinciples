@@ -46,7 +46,7 @@ public:
         this->source = source;
     }
 
-    inline int getCur() {
+    inline int getCur() const {
         return ptr;
     }
 
@@ -94,7 +94,7 @@ public:
         int len = 0, lv1_type = start_type(source[ptr]), lv2_type = 0;
         string sub_word;
         switch (lv1_type) {
-            case WORD:
+            case WORD: {
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
@@ -110,8 +110,8 @@ public:
                 lv2_type = reserved_words.find(sub_word)->second;
                 cout << "【词】(保留字" << sub_word << ", " << sub_word << ")" << endl;
                 break;
-
-            case NUM:
+            }
+            case NUM: {
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
@@ -119,8 +119,8 @@ public:
                          is_digit(source[ptr + len]));  // 字符合法，可以拼成更长的数字序列
                 cout << "【词】(常量, " << sub_word << ")" << endl;
                 break;
-
-            case SYMBOL:
+            }
+            case SYMBOL: {
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
@@ -129,8 +129,8 @@ public:
                 lv2_type = reserved_symbols.find(sub_word)->second.first;
                 cout << "【词】(" << reserved_symbols.find(sub_word)->second.second << ", " << sub_word << ")" << endl;
                 break;
-
-            case IDENTIFIER:
+            }
+            case IDENTIFIER: {
                 do {
                     len++;
                     sub_word = source.substr(ptr, len);
@@ -139,11 +139,12 @@ public:
                           is_digit(source[ptr + len])));  // 变量名由$开头，并由字母或数字组成
                 cout << "【词】(标识符, " << sub_word << ")" << endl;
                 break;
-
-            default:  // illegal
+            }
+            default: {// illegal
                 cout << "[Lexical Error]: Position " + to_string(ptr) + ". '" + source[ptr] + "' is not legal!" << endl;
                 ptr++;
                 return false;
+            }
         }
         res = sub_word;
         type = lv2_type != 0 ? lv2_type : lv1_type;
