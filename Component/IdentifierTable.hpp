@@ -40,6 +40,8 @@ public:
         if (!existIdentifier(name))
             return false;
         table[name].type = type;
+        if (type == getTypenameByID(WORD_INT))
+            table[name].value = "0";
         return true;
     }
 

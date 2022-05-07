@@ -56,7 +56,7 @@ public:
         parseExplainVars();
         match_word(SYMBOL_SEMICOLON);
         parseStatementSection();
-        if (have_error) cout << "[Syntax error]: Parse program failed!" << endl;
+        if (have_error) cout << "[Syntax Error]: Parse program failed!" << endl;
         cout << "语法分析结束" << endl;
     }
 
@@ -82,8 +82,14 @@ public:
             return;
         match_word(SYMBOL_COMMA);
         if (next_word.second == IDENTIFIER) {
-            identifierTable->addIdentifier(next_word.first);
-            identifierTable->updateIdentifierType(next_word.first, getTypenameByID(identifierType));
+            string identifierName = next_word.first;
+            if (identifierTable->existIdentifier(identifierName))
+                cout << "[Syntax Error]: Position " << lexicalAnalyzer->getCur()
+                     << ". Identifier '" << identifierName << "' is multi defined!" << endl;
+            else {
+                identifierTable->addIdentifier(identifierName);
+                identifierTable->updateIdentifierType(identifierName, getTypenameByID(identifierType));
+            }
             match_word(IDENTIFIER);
         }
         parseIdentifierListPrime(identifierType);
@@ -117,6 +123,9 @@ public:
         // 由于只有 next_word.second == IDENTIFIER 才会调用该函数，故不需要再次判断
         string identifierName = next_word.first;
         string identifierType = identifierTable->getIdentifier(next_word.first).type;
+        if (!identifierTable->existIdentifier(identifierName))
+            cout << "[Syntax error]: Position " << lexicalAnalyzer->getCur()
+                 << ". Identifier '" << identifierName << "' is not defined!" << endl;
         match_word(IDENTIFIER);
         match_word(SYMBOL_ASSIGN);
         Identifier E = parseExpression();
@@ -125,7 +134,8 @@ public:
             codeTable->addQuaternary("=", E.name, "null", identifierName);
             identifierTable->updateIdentifierValue(identifierName, E.value);
         } else
-            cout << "[Semantic error]: When assigning a value to " << identifierName
+            cout << "[Semantic error]: Position " << lexicalAnalyzer->getCur()
+                 << ". When assigning a value to " << identifierName
                  << ". Expect type '" << identifierType
                  << "', but got '" << E.type << "'" << endl;
     }
@@ -275,7 +285,9 @@ public:
 
     void match_word(int expected_type) {
         if (next_word.second != expected_type) {
-            cout << "[Syntax error]: Expect type " << expected_type << ", but got '" << next_word.first << "'" << endl;
+            cout << "[Syntax Error]: Position " << lexicalAnalyzer->getCur()
+                 << ". Expect type '" << getTypenameByID(expected_type)
+                 << "', but got '" << next_word.first << "'" << endl;
             have_error = true;
         }
         lexicalAnalyzer->getNextWord(next_word.first, next_word.second);

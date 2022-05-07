@@ -46,6 +46,10 @@ public:
         this->source = source;
     }
 
+    inline int getCur() {
+        return ptr;
+    }
+
     /**
      * 解析代码中的标识符，并输出到标识符表
      * @param identifierTable 标识符表
@@ -98,7 +102,7 @@ public:
                          !ptr_arrive_end(ptr + len) &&  // 防越界
                          is_letter(source[ptr + len]));  // 字符合法
                 if (!is_reserved_words(sub_word)) {
-                    cout << "[Lexical Error]: Word at " << ptr << ", '" << sub_word <<
+                    cout << "[Lexical Error]: Position " << ptr << ". '" << sub_word <<
                          "' is not a reserved next_word! Will ignore it!" << endl;
                     ptr += len;
                     return false;
@@ -137,8 +141,7 @@ public:
                 break;
 
             default:  // illegal
-                string msg = "[Lexical Error]: Word at" + to_string(ptr) + ", " + source[ptr] + " is not legal!";
-                cout << msg << endl;
+                cout << "[Lexical Error]: Position " + to_string(ptr) + ". '" + source[ptr] + "' is not legal!" << endl;
                 ptr++;
                 return false;
         }
