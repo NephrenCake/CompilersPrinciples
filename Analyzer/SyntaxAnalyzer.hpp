@@ -243,9 +243,9 @@ public:
 
     Identifier parseCondition() {
         cout << "【语】推导：<条件> → <表达式><关系运算符><表达式>" << endl;
-        string op = getTypenameByID(next_word.second), temp;
 
         Identifier E1 = parseExpression();
+        string op = getTypenameByID(next_word.second), temp;
         if (SYMBOL_LT <= next_word.second && next_word.second <= SYMBOL_EQ)
             match_word(next_word.second);
         Identifier E2 = parseExpression();
