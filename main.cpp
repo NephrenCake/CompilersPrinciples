@@ -1,3 +1,8 @@
+/**
+ * @Auther: 刘亦飞
+ * @Date: 2022/4/22
+ * @Discription: 入口主程序
+ */
 #include "Analyzer/SyntaxAnalyzer.hpp"
 
 int main() {

@@ -16,6 +16,7 @@
    	- IdentifierTable.hpp		# 标识符表
    	- CodeTable.hpp				# 中间代码表/四元式表
    	- TempVarTable.hpp			# 临时变量表
+   main.cpp                     # 入口主程序
    ```
 
    
