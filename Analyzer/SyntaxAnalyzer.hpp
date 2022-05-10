@@ -84,7 +84,7 @@ public:
         if (next_word.second == IDENTIFIER) {
             string identifierName = next_word.first;
             if (identifierTable->existIdentifier(identifierName))
-                cout << "[Syntax Error]: Position " << lexicalAnalyzer->getCur()
+                cout << "[Semantic Error]: Position " << lexicalAnalyzer->getCur()
                      << ". Identifier '" << identifierName << "' is multi defined!" << endl;
             else {
                 identifierTable->addIdentifier(identifierName);
@@ -124,7 +124,7 @@ public:
         string identifierName = next_word.first;
         string identifierType = identifierTable->getIdentifier(next_word.first).type;
         if (!identifierTable->existIdentifier(identifierName))
-            cout << "[Syntax error]: Position " << lexicalAnalyzer->getCur()
+            cout << "[Semantic error]: Position " << lexicalAnalyzer->getCur()
                  << ". Identifier '" << identifierName << "' is not defined!" << endl;
         match_word(IDENTIFIER);
         match_word(SYMBOL_ASSIGN);
