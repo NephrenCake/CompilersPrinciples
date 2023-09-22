@@ -26,4 +26,13 @@
    cmake -B build
    cmake --build build/
    ./build/CompilerPrinciples 
+   rm -rf build
+   ```
+   
+   or
+
+   ```bash
+   make build
+   make run
+   make clean
    ```
