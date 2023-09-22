@@ -19,3 +19,11 @@
            - TempVarTable.hpp          # 临时变量表
        - main.cpp                      # 入口主程序
    ```
+
+4. 编译运行该项目
+
+   ```bash
+   cmake -B build
+   cmake --build build/
+   ./build/CompilerPrinciples 
+   ```
